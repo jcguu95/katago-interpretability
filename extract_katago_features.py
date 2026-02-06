@@ -16,8 +16,8 @@ def extract_features(model_path):
     # Example: Black at (2, 2), White at (3, 3)
     # rule = rules.Rules()
     state = gamestate.GameState(board_size=19, rules=gamestate.GameState.RULES_TT)
-    state.play(1, (2, 2))  # Black
-    state.play(-1, (3, 3)) # White
+    state.play(1, state.board.loc(2, 2))  # Black
+    state.play(-1, state.board.loc(3, 3)) # White
 
     config = model_pytorch.ModelConfig()  # Use default config or load from a file
     model = model_pytorch.Model(config)
