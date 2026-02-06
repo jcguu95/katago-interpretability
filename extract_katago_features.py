@@ -1,16 +1,13 @@
 import sys
 import argparse
 import os
-import gzip
-import shutil
+import urllib.request
 
 # Add katago submodule to python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
 
 from katago.game import gamestate
 from katago.train.load_model import load_model
-from katago.cpp_model import Model as CppModel
-from katago.train.model_pytorch import Model as PyTorchModel
 import torch
 from katago.game.board import Board
 # from katago.game import rules
@@ -31,47 +28,22 @@ class KataGoFeatureExtractor:
         self.model = self._load_katago_model(model_path, pos_len)
 
     def _load_katago_model(self, model_path, pos_len):
-        """Loads the KataGo model, converting it to PyTorch format if necessary."""
-        # Define the path for the PyTorch model
-        base_name = os.path.basename(model_path)
-        if base_name.endswith(".bin.gz"):
-            pytorch_model_path = base_name[:-7] + ".pth"
-        else:
-            pytorch_model_path = os.path.splitext(base_name)[0] + ".pth"
+        """Loads a PyTorch-native KataGo model, downloading it if necessary."""
+        pytorch_model_path = os.path.basename(model_path)
 
-        # Convert the model if the PyTorch version doesn't exist
+        # Download the model if it's a URL and doesn't exist locally
+        if not os.path.exists(pytorch_model_path) and (
+            model_path.startswith("http://")
+            or model_path.startswith("https://")
+        ):
+            print(f"Model not found locally. Downloading from {model_path}...")
+            urllib.request.urlretrieve(model_path, pytorch_model_path)
+            print(f"Downloaded to {pytorch_model_path}.")
+
         if not os.path.exists(pytorch_model_path):
-            print(f"PyTorch model not found at '{pytorch_model_path}'.")
-            print(f"Converting '{model_path}' to PyTorch format...")
-
-            local_model_path = model_path
-            if model_path.endswith(".gz"):
-                uncompressed_filename = model_path[:-3]
-                if not os.path.exists(uncompressed_filename):
-                    print(f"Decompressing {model_path} to {uncompressed_filename}...")
-                    with gzip.open(model_path, "rb") as f_in:
-                        with open(uncompressed_filename, "wb") as f_out:
-                            shutil.copyfileobj(f_in, f_out)
-                    print("Decompression complete.")
-                local_model_path = uncompressed_filename
-
-            print(f"Loading C++ model from '{local_model_path}'")
-            cpp_model = CppModel(local_model_path)
-            config = cpp_model.get_model_config()
-
-            print("Creating PyTorch model from C++ model weights")
-            pytorch_model = PyTorchModel(config, cpp_model.pos_len)
-            pytorch_model.initialize()
-            pytorch_model.load_state_dict(cpp_model.get_sd())
-
-            print(f"Saving PyTorch model to '{pytorch_model_path}'")
-            data_to_save = {
-                "config": config,
-                "model": pytorch_model.state_dict(),
-                "train_state": {},
-            }
-            torch.save(data_to_save, pytorch_model_path)
-            print("Conversion successful.")
+            raise FileNotFoundError(
+                f"Model file not found at {pytorch_model_path}. Please provide a valid path or URL to a .pth model file."
+            )
 
         print(f"Loading PyTorch model from '{pytorch_model_path}'")
         model, _, _ = load_model(
@@ -117,8 +89,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model_path",
-        default="kata1-b28c512nbt-s7944987392-d4526094999.bin.gz",
-        help="Path to the KataGo model file.",
+        default="https://example.com/path/to/your/model.pth",
+        help="Path or URL to a KataGo PyTorch model file (.pth). You must find a valid URL.",
     )
     args = parser.parse_args()
 
