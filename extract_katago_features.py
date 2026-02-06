@@ -91,7 +91,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Extract KataGo features from a game state."
     )
-    parser.add_argument("model_path", help="Path to the KataGo model file.")
+    parser.add_argument(
+        "--model_path",
+        default="https://media.katagotraining.org/uploaded/models/kata1/kata1-b15c192-s1673373440-d46379203.bin.gz",
+        help="Path or URL to the KataGo model file.",
+    )
     args = parser.parse_args()
 
     extract_features(args.model_path)
