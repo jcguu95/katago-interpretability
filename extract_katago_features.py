@@ -9,7 +9,18 @@ sys.path.append(katago_path)
 print("sys.path:", sys.path)
 
 from katago.game import gamestate
-from katago.train import model_pytorch
+import sys
+import argparse
+import os
+
+# Find the absolute path to the KataGo python directory
+katago_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
+sys.path.append(katago_path)
+
+print("sys.path:", sys.path)
+
+from katago.game import gamestate
+from katago.train.model_pytorch import Model, load_weights
 import torch
 from katago.game.board import Board
 # from katago.game import rules
@@ -52,8 +63,8 @@ def extract_features(model_path):
         "trunk_normless": False,
     }
     pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
-    model = model_pytorch.Model(config, pos_len=pos_len)
-    model_pytorch.load_weights(model, model_path)
+    model = Model(config, pos_len=pos_len)
+    load_weights(model, model_path)
     model.eval()  # Set the model to evaluation mode
 
     # Extract the trunkfinal layer
