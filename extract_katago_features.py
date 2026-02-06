@@ -6,8 +6,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
 
 from katago.game import gamestate
-from katago.train.model_pytorch import Model
-from katago.train.load_model import load_weights
+from katago.train.load_model import load_model
 import torch
 from katago.game.board import Board
 # from katago.game import rules
@@ -29,33 +28,9 @@ class KataGoFeatureExtractor:
 
     def _load_katago_model(self, model_path, pos_len):
         """Loads the KataGo model."""
-        config = {
-            "norm_kind": "fixup",
-            "block_kind": [["rconv1", "regular"]],
-            "trunk_num_channels": 256,
-            "mid_num_channels": 128,
-            "gpool_num_channels": 32,
-            "p1_num_channels": 32,
-            "g1_num_channels": 16,
-            "v1_num_channels": 32,
-            "v2_size": 32,
-            "sbv2_num_channels": 32,
-            "num_scorebeliefs": 61,
-            "initial_conv_1x1": True,
-            "has_intermediate_head": False,
-            "activation": "relu",
-            "bnorm_epsilon": 1e-5,
-            "bnorm_running_avg_momentum": 0.1,
-            "version": 15,
-            "use_attention_pool": False,
-            "num_attention_pool_heads": 1,
-            "use_repvgg_init": False,
-            "use_repvgg_linear": False,
-            "metadata_encoder": None,
-            "trunk_normless": False,
-        }
-        model = Model(config, pos_len=pos_len)
-        load_weights(model, model_path)
+        model, swa_model, other_state_dict = load_model(
+            model_path, use_swa=False, device="cpu", pos_len=pos_len
+        )
         model.eval()  # Set the model to evaluation mode
         return model
 
