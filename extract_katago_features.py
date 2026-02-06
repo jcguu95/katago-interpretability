@@ -1,6 +1,10 @@
 import sys
 import argparse
-sys.path.append('./katago/python')
+import os
+
+# Find the absolute path to the KataGo python directory
+katago_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
+sys.path.append(katago_path)
 
 from katago.game import gamestate
 from katago.train import model_pytorch
