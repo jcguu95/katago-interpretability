@@ -2,7 +2,7 @@ import sys
 sys.path.append('./katago/python')
 
 from katago.game import gamestate
-from katago.model import model_pytorch
+from katago.train import model_pytorch
 import torch
 
 def extract_features():
