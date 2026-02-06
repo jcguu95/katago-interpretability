@@ -85,7 +85,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model_path",
-        default="/tmp/kata2/kata1-b15c192-s1673373440-d46379203.bin.gz",
+        default="kata1-b28c512nbt-s7944987392-d4526094999.bin.gz",
         help="Path to the KataGo model file.",
     )
     args = parser.parse_args()
