@@ -2,23 +2,6 @@ import sys
 import argparse
 import os
 
-# Find the absolute path to the KataGo python directory
-katago_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
-sys.path.append(katago_path)
-
-print("sys.path:", sys.path)
-
-from katago.game import gamestate
-import sys
-import argparse
-import os
-
-# Find the absolute path to the KataGo python directory
-katago_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
-sys.path.append(katago_path)
-
-print("sys.path:", sys.path)
-
 from katago.game import gamestate
 from katago.train.model_pytorch import Model, load_weights
 import torch
