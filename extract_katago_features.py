@@ -47,7 +47,7 @@ def extract_features(model_path):
     }
     pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
     model = model_pytorch.Model(config, pos_len=pos_len)
-    model.load_weights_from_checkpoint(model_path)
+    model_pytorch.load_weights(model, model_path)
     model.eval()  # Set the model to evaluation mode
 
     # Extract the trunkfinal layer
