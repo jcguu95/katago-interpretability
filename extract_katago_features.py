@@ -35,8 +35,9 @@ class KataGoFeatureExtractor:
 
         model_filename = local_path
         if local_path.endswith(".zip"):
-            # The zip is expected to extract to 'model.ckpt'
-            model_filename = "model.ckpt"
+            # The zip is expected to extract to a directory named after the zip, containing 'model.ckpt'
+            unzipped_dir = os.path.splitext(local_path)[0]
+            model_filename = os.path.join(unzipped_dir, "model.ckpt")
 
         # Download if the target model file doesn't exist and a URL is provided
         if not os.path.exists(model_filename) and (
