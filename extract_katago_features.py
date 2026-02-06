@@ -6,7 +6,8 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
 
 from katago.game import gamestate
-from katago.train.model_pytorch import Model, load_weights
+from katago.train.model_pytorch import Model
+from katago.train.load_model import load_weights
 import torch
 from katago.game.board import Board
 # from katago.game import rules
