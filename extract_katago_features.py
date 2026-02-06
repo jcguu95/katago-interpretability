@@ -5,6 +5,7 @@ sys.path.append('./katago/python')
 from katago.game import gamestate
 from katago.train import model_pytorch
 import torch
+from katago.game import rules
 
 def extract_features(model_path):
     """
@@ -13,7 +14,8 @@ def extract_features(model_path):
 
     # Initialize game state with two stones
     # Example: Black at (2, 2), White at (3, 3)
-    state = gamestate.GameState(board_size=19)
+    rule = rules.Rules()
+    state = gamestate.GameState(board_size=19, rules=rule)
     state.play_move(2, 2, color=1)  # Black
     state.play_move(3, 3, color=-1) # White
 
