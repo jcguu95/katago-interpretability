@@ -96,8 +96,16 @@ def extract_features(model_path):
     state = initialize_game_state()
     pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
     extractor = KataGoFeatureExtractor(model_path, pos_len)
-    trunkfinal_output = extractor.extract_trunkfinal_output(state)
-    print_trunkfinal_output(trunkfinal_output)
+
+    print("--- Features for Initial Game State ---")
+    trunkfinal_output_1 = extractor.extract_trunkfinal_output(state)
+    print_trunkfinal_output(trunkfinal_output_1)
+
+    # Add another move and extract features again
+    print("\n--- Features for Game State After One More Move ---")
+    state.play(Board.BLACK, state.board.loc(4, 4))
+    trunkfinal_output_2 = extractor.extract_trunkfinal_output(state)
+    print_trunkfinal_output(trunkfinal_output_2)
 
 
 if __name__ == "__main__":
