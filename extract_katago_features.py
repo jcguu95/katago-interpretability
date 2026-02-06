@@ -9,8 +9,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
 
 from katago.game import gamestate
 from katago.train.load_model import load_model
+from katago.cpp_model import Model as CppModel
+from katago.train.model_pytorch import Model as PyTorchModel
 import torch
-import functools
 from katago.game.board import Board
 # from katago.game import rules
 
@@ -30,17 +31,22 @@ class KataGoFeatureExtractor:
         self.model = self._load_katago_model(model_path, pos_len)
 
     def _load_katago_model(self, model_path, pos_len):
-        """Loads the KataGo model."""
-        # Monkey-patch torch.load to address weights_only issue in newer PyTorch versions.
-        # This is a workaround to avoid editing the katago submodule code.
-        original_torch_load = torch.load
-        try:
-            torch.load = functools.partial(original_torch_load, weights_only=False)
+        """Loads the KataGo model, converting it to PyTorch format if necessary."""
+        # Define the path for the PyTorch model
+        base_name = os.path.basename(model_path)
+        if base_name.endswith(".bin.gz"):
+            pytorch_model_path = base_name[:-7] + ".pth"
+        else:
+            pytorch_model_path = os.path.splitext(base_name)[0] + ".pth"
+
+        # Convert the model if the PyTorch version doesn't exist
+        if not os.path.exists(pytorch_model_path):
+            print(f"PyTorch model not found at '{pytorch_model_path}'.")
+            print(f"Converting '{model_path}' to PyTorch format...")
 
             local_model_path = model_path
             if model_path.endswith(".gz"):
                 uncompressed_filename = model_path[:-3]
-                # Decompress if the uncompressed file doesn't exist
                 if not os.path.exists(uncompressed_filename):
                     print(f"Decompressing {model_path} to {uncompressed_filename}...")
                     with gzip.open(model_path, "rb") as f_in:
@@ -49,17 +55,30 @@ class KataGoFeatureExtractor:
                     print("Decompression complete.")
                 local_model_path = uncompressed_filename
 
-            with open(local_model_path, "rb") as f:
-                header = f.read(100)
-                print(f"File header of {local_model_path}: {header}")
+            print(f"Loading C++ model from '{local_model_path}'")
+            cpp_model = CppModel(local_model_path)
+            config = cpp_model.get_model_config()
 
-            model, swa_model, other_state_dict = load_model(
-                local_model_path, use_swa=False, device="cpu", pos_len=pos_len
-            )
-            model.eval()  # Set the model to evaluation mode
-            return model
-        finally:
-            torch.load = original_torch_load
+            print("Creating PyTorch model from C++ model weights")
+            pytorch_model = PyTorchModel(config, cpp_model.pos_len)
+            pytorch_model.initialize()
+            pytorch_model.load_state_dict(cpp_model.get_sd())
+
+            print(f"Saving PyTorch model to '{pytorch_model_path}'")
+            data_to_save = {
+                "config": config,
+                "model": pytorch_model.state_dict(),
+                "train_state": {},
+            }
+            torch.save(data_to_save, pytorch_model_path)
+            print("Conversion successful.")
+
+        print(f"Loading PyTorch model from '{pytorch_model_path}'")
+        model, _, _ = load_model(
+            pytorch_model_path, use_swa=False, device="cpu", pos_len=pos_len
+        )
+        model.eval()  # Set the model to evaluation mode
+        return model
 
     def extract_trunkfinal_output(self, state):
         """Extracts the 'trunkfinal' layer from KataGo's neural network."""
