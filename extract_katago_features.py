@@ -20,7 +20,31 @@ def extract_features(model_path):
     state.play(Board.BLACK, state.board.loc(2, 2))  # Black
     state.play(Board.WHITE, state.board.loc(3, 3)) # White
 
-    config = {"norm_kind": "batchnorm", "block_kind": "res", "trunk_num_channels": 256, "mid_num_channels": 128, "gpool_num_channels": 32, "p1_num_channels": 32, "g1_num_channels": 16}  # Use default config or load from a file
+    config = {
+        "norm_kind": "batchnorm",
+        "block_kind": "res",
+        "trunk_num_channels": 256,
+        "mid_num_channels": 128,
+        "gpool_num_channels": 32,
+        "p1_num_channels": 32,
+        "g1_num_channels": 16,
+        "v1_num_channels": 32,
+        "v2_size": 32,
+        "sbv2_num_channels": 32,
+        "num_scorebeliefs": 61,
+        "initial_conv_1x1": True,
+        "has_intermediate_head": False,
+        "activation": "relu",
+        "bnorm_epsilon": 1e-5,
+        "bnorm_running_avg_momentum": 0.1,
+        "version": 15,
+        "use_attention_pool": False,
+        "num_attention_pool_heads": 1,
+        "use_repvgg_init": False,
+        "use_repvgg_linear": False,
+        "metadata_encoder": None,
+        "trunk_normless": False,
+    }
     pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
     model = model_pytorch.Model(config, pos_len=pos_len)
     model.load_weights(model_path)
