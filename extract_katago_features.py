@@ -49,6 +49,10 @@ class KataGoFeatureExtractor:
                     print("Decompression complete.")
                 local_model_path = uncompressed_filename
 
+            with open(local_model_path, "rb") as f:
+                header = f.read(100)
+                print(f"File header of {local_model_path}: {header}")
+
             model, swa_model, other_state_dict = load_model(
                 local_model_path, use_swa=False, device="cpu", pos_len=pos_len
             )
