@@ -22,7 +22,7 @@ def extract_features(model_path):
 
     config = {
         "norm_kind": "batchnorm",
-        "block_kind": [["resblock1", "res"]],
+        "block_kind": [["rconv1", "regular"]],
         "trunk_num_channels": 256,
         "mid_num_channels": 128,
         "gpool_num_channels": 32,
