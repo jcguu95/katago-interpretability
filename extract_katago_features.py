@@ -1,6 +1,7 @@
 import sys
 import argparse
 import os
+import urllib.request
 
 # Add katago submodule to python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
@@ -28,17 +29,27 @@ class KataGoFeatureExtractor:
         self.model = self._load_katago_model(model_path, pos_len)
 
     def _load_katago_model(self, model_path, pos_len):
-        """Loads a PyTorch-native KataGo model."""
-        if not os.path.exists(model_path):
+        """Loads a PyTorch-native KataGo model (.pth or .ckpt), downloading it if necessary."""
+        local_model_path = os.path.basename(model_path)
+
+        # Download the model if it's a URL and doesn't exist locally
+        if not os.path.exists(local_model_path) and (
+            model_path.startswith("http://")
+            or model_path.startswith("https://")
+        ):
+            print(f"Model not found locally. Downloading from {model_path}...")
+            urllib.request.urlretrieve(model_path, local_model_path)
+            print(f"Downloaded to {local_model_path}.")
+
+        if not os.path.exists(local_model_path):
             raise FileNotFoundError(
-                f"Model file not found at {model_path}. "
-                "This script requires a PyTorch-native (.pth) model file. "
-                "Please convert the .bin.gz model outside this environment and place it here."
+                f"Model file not found at {local_model_path}. "
+                "This script requires a PyTorch-native model file (.pth or .ckpt)."
             )
 
-        print(f"Loading PyTorch model from '{model_path}'")
+        print(f"Loading PyTorch model from '{local_model_path}'")
         model, _, _ = load_model(
-            model_path, use_swa=False, device="cpu", pos_len=pos_len
+            local_model_path, use_swa=False, device="cpu", pos_len=pos_len
         )
         model.eval()  # Set the model to evaluation mode
         return model
@@ -76,8 +87,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model_path",
-        default="kata1-b28c512nbt-s7944987392-d4526094999.pth",
-        help="Path to a KataGo PyTorch model file (.pth).",
+        default="https://media.katagotraining.org/uploaded/models/kata1/kata1-b18c384nbt-s913148160-d402956755.ckpt",
+        help="Path or URL to a KataGo PyTorch model file (.pth or .ckpt).",
     )
     args = parser.parse_args()
 
