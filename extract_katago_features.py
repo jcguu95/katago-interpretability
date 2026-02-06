@@ -6,6 +6,8 @@ import os
 katago_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
 sys.path.append(katago_path)
 
+print("sys.path:", sys.path)
+
 from katago.game import gamestate
 from katago.train import model_pytorch
 import torch
