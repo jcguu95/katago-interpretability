@@ -21,7 +21,7 @@ def extract_features(model_path):
     state.play(Board.WHITE, state.board.loc(3, 3)) # White
 
     config = {
-        "norm_kind": "batchnorm",
+        "norm_kind": "fixup",
         "block_kind": [["rconv1", "regular"]],
         "trunk_num_channels": 256,
         "mid_num_channels": 128,
