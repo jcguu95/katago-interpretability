@@ -20,7 +20,7 @@ def extract_features(model_path):
     state.play(Board.BLACK, state.board.loc(2, 2))  # Black
     state.play(Board.WHITE, state.board.loc(3, 3)) # White
 
-    config = model_pytorch.ModelConfigs()  # Use default config or load from a file
+    config = model_pytorch.modelconfigs()  # Use default config or load from a file
     model = model_pytorch.Model(config)
     model.load_weights(model_path)
     model.eval()  # Set the model to evaluation mode
