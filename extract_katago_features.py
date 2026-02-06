@@ -21,7 +21,8 @@ def extract_features(model_path):
     state.play(Board.WHITE, state.board.loc(3, 3)) # White
 
     config = {}  # Use default config or load from a file
-    model = model_pytorch.Model(config)
+    pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
+    model = model_pytorch.Model(config, pos_len=pos_len)
     model.load_weights(model_path)
     model.eval()  # Set the model to evaluation mode
 
