@@ -1,6 +1,9 @@
 import sys
 import argparse
 import os
+import gzip
+import shutil
+import urllib.request
 
 # Add katago submodule to python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
@@ -28,8 +31,31 @@ class KataGoFeatureExtractor:
 
     def _load_katago_model(self, model_path, pos_len):
         """Loads the KataGo model."""
+        local_model_path = model_path
+        if not os.path.exists(local_model_path) and (
+            local_model_path.startswith("http://")
+            or local_model_path.startswith("https://")
+        ):
+            print(f"Model not found locally. Downloading from {local_model_path}...")
+            gz_filename = os.path.basename(local_model_path)
+            uncompressed_filename = (
+                gz_filename[:-3] if gz_filename.endswith(".gz") else gz_filename
+            )
+
+            urllib.request.urlretrieve(local_model_path, gz_filename)
+            print(f"Downloaded to {gz_filename}.")
+
+            if gz_filename.endswith(".gz"):
+                print(f"Decompressing to {uncompressed_filename}...")
+                with gzip.open(gz_filename, "rb") as f_in:
+                    with open(uncompressed_filename, "wb") as f_out:
+                        shutil.copyfileobj(f_in, f_out)
+                print("Decompression complete.")
+
+            local_model_path = uncompressed_filename
+
         model, swa_model, other_state_dict = load_model(
-            model_path, use_swa=False, device="cpu", pos_len=pos_len
+            local_model_path, use_swa=False, device="cpu", pos_len=pos_len
         )
         model.eval()  # Set the model to evaluation mode
         return model
