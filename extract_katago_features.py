@@ -88,6 +88,10 @@ def extract_features(model_path):
 
 
 if __name__ == "__main__":
+    print(f"Using Python: {sys.executable}")
+    # The script will fail with an ImportError if torch is not available.
+    # This print statement will only be reached if torch was imported successfully.
+    print("torch is available.")
     parser = argparse.ArgumentParser(
         description="Extract KataGo features from a game state."
     )
