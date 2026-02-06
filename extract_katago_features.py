@@ -2,6 +2,9 @@ import sys
 import argparse
 import os
 
+# Add katago submodule to python path
+sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
+
 from katago.game import gamestate
 from katago.train.model_pytorch import Model, load_weights
 import torch
