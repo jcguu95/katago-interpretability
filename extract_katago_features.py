@@ -1,16 +1,31 @@
 import sys
 import argparse
 import os
-import urllib.request
+import json
+import subprocess
+import time
+from threading import Thread
+from typing import Tuple, List, Optional, Union, Literal, Any, Dict
 
 # Add katago submodule to python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
 
 from katago.game import gamestate
-from katago.train.load_model import load_model
 import torch
 from katago.game.board import Board
 # from katago.game import rules
+
+Color = Union[Literal["b"],Literal["w"]]
+Move = Union[None,Literal["pass"],Tuple[int,int]]
+
+def sgfmill_to_str(move: Move) -> str:
+    if move is None:
+        return "pass"
+    if move == "pass":
+        return "pass"
+    (y,x) = move
+    return "ABCDEFGHJKLMNOPQRSTUVWXYZ"[x] + str(y+1)
+
 
 def initialize_game_state():
     """Initializes the game state with two stones."""
@@ -20,45 +35,100 @@ def initialize_game_state():
     return state
 
 
-class KataGoFeatureExtractor:
-    """A class to handle KataGo model loading and feature extraction."""
+class KataGo:
+    """A class to manage the KataGo analysis engine subprocess."""
 
-    def __init__(self, model_path, pos_len):
-        """Initializes the feature extractor and loads the model."""
-        self.model = self._load_katago_model(model_path, pos_len)
-
-    def _load_katago_model(self, model_path, pos_len):
-        """Loads a PyTorch-native KataGo model, downloading it if necessary."""
-        pytorch_model_path = os.path.basename(model_path)
-
-        # Download the model if it's a URL and doesn't exist locally
-        if not os.path.exists(pytorch_model_path) and (
-            model_path.startswith("http://")
-            or model_path.startswith("https://")
-        ):
-            print(f"Model not found locally. Downloading from {model_path}...")
-            urllib.request.urlretrieve(model_path, pytorch_model_path)
-            print(f"Downloaded to {pytorch_model_path}.")
-
-        if not os.path.exists(pytorch_model_path):
-            raise FileNotFoundError(
-                f"Model file not found at {pytorch_model_path}. Please provide a valid path or URL to a .pth model file."
-            )
-
-        print(f"Loading PyTorch model from '{pytorch_model_path}'")
-        model, _, _ = load_model(
-            pytorch_model_path, use_swa=False, device="cpu", pos_len=pos_len
+    def __init__(self, katago_path: str, config_path: str, model_path: str, additional_args: List[str] = []):
+        self.query_counter = 0
+        katago_command = [katago_path, "analysis", "-config", config_path, "-model", model_path, *additional_args]
+        print(f"Running KataGo: {' '.join(katago_command)}")
+        katago = subprocess.Popen(
+            katago_command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
-        model.eval()  # Set the model to evaluation mode
-        return model
+        self.katago = katago
+        def printforever():
+            while katago.poll() is None:
+                data = katago.stderr.readline()
+                time.sleep(0)
+                if data:
+                    print("KataGo stderr: ", data.decode(), end="")
+            data = katago.stderr.read()
+            if data:
+                print("KataGo stderr: ", data.decode(), end="")
+        self.stderrthread = Thread(target=printforever)
+        self.stderrthread.start()
+
+    def close(self):
+        if self.katago.stdin and not self.katago.stdin.closed:
+            self.katago.stdin.close()
+        try:
+            self.katago.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            self.katago.kill()
+            self.katago.wait()
+        self.stderrthread.join(timeout=5)
+
+    def query_raw(self, query: Dict[str,Any]):
+        if not self.katago.stdin or self.katago.stdin.closed:
+             raise IOError("KataGo process stdin is closed")
+        self.katago.stdin.write((json.dumps(query) + "\n").encode())
+        self.katago.stdin.flush()
+
+        line = ""
+        while line == "" and self.katago.poll() is None:
+            if not self.katago.stdout or self.katago.stdout.closed:
+                raise IOError("KataGo process stdout is closed")
+            line = self.katago.stdout.readline()
+            line = line.decode().strip()
+
+        if line == "" and self.katago.poll() is not None:
+             raise Exception("Unexpected katago exit")
+
+        response = json.loads(line)
+        return response
+
+
+class KataGoFeatureExtractor:
+    """A class to handle KataGo feature extraction via the analysis engine."""
+
+    def __init__(self, katago_path, config_path, model_path):
+        """Initializes the feature extractor and starts the KataGo engine."""
+        self.katago = KataGo(katago_path, config_path, model_path)
+
+    def close(self):
+        """Shuts down the KataGo engine."""
+        self.katago.close()
 
     def extract_trunkfinal_output(self, state):
         """Extracts the 'trunkfinal' layer from KataGo's neural network."""
-        extra_output_names = ["trunkfinal"]
-        outputs = state.get_model_outputs(
-            self.model, extra_output_names=extra_output_names
-        )
-        trunkfinal_output = outputs["trunkfinal"]
+        moves = []
+        for player, loc in state.moves:
+            color = "b" if player == Board.BLACK else "w"
+            move = (state.board.loc_y(loc), state.board.loc_x(loc)) if loc is not None else "pass"
+            moves.append((color, move))
+
+        query = {
+            "id": "extract_features_query",
+            "moves": [(color, sgfmill_to_str(move)) for color, move in moves],
+            "initialStones": [],
+            "rules": "Chinese",
+            "komi": state.komi,
+            "boardXSize": state.board.x_size,
+            "boardYSize": state.board.y_size,
+            "includePolicy": False,
+            "extraOutputNames": ["trunkfinal"],
+        }
+        response = self.katago.query_raw(query)
+
+        if "extraOutputs" not in response or "trunkfinal" not in response["extraOutputs"]:
+            raise ValueError(f"Failed to get trunkfinal output. Response: {response}")
+
+        trunkfinal_output_list = response["extraOutputs"]["trunkfinal"]
+        # The output is likely (C, H, W). We add a batch dimension to match the old output shape.
+        trunkfinal_output = torch.tensor(trunkfinal_output_list, dtype=torch.float32).unsqueeze(0)
         return trunkfinal_output
 
 
@@ -68,30 +138,38 @@ def print_trunkfinal_output(trunkfinal_output):
     print("Trunkfinal output:", trunkfinal_output)
 
 
-def extract_features(model_path):
+def extract_features(katago_path, config_path, model_path):
     """
     Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
     """
     state = initialize_game_state()
-    pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
-    extractor = KataGoFeatureExtractor(model_path, pos_len)
-    trunkfinal_output = extractor.extract_trunkfinal_output(state)
-    print_trunkfinal_output(trunkfinal_output)
+    extractor = KataGoFeatureExtractor(katago_path, config_path, model_path)
+    try:
+        trunkfinal_output = extractor.extract_trunkfinal_output(state)
+        print_trunkfinal_output(trunkfinal_output)
+    finally:
+        extractor.close()
 
 
 if __name__ == "__main__":
-    print(f"Using Python: {sys.executable}")
-    # The script will fail with an ImportError if torch is not available.
-    # This print statement will only be reached if torch was imported successfully.
-    print("torch is available.")
     parser = argparse.ArgumentParser(
-        description="Extract KataGo features from a game state."
+        description="Extract KataGo features from a game state using the analysis engine."
     )
     parser.add_argument(
-        "--model_path",
-        default="https://example.com/path/to/your/model.pth",
-        help="Path or URL to a KataGo PyTorch model file (.pth). You must find a valid URL.",
+        "-katago-path",
+        help="Path to katago executable",
+        required=True,
+    )
+    parser.add_argument(
+        "-config-path",
+        help="Path to KataGo analysis config (e.g. katago/cpp/configs/analysis_example.cfg)",
+        required=True,
+    )
+    parser.add_argument(
+        "-model-path",
+        help="Path to neural network .bin.gz file",
+        default="kata1-b28c512nbt-s7944987392-d4526094999.bin.gz",
     )
     args = parser.parse_args()
 
-    extract_features(args.model_path)
+    extract_features(args.katago_path, args.config_path, args.model_path)
