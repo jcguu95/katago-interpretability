@@ -20,7 +20,7 @@ def extract_features(model_path):
     state.play(Board.BLACK, state.board.loc(2, 2))  # Black
     state.play(Board.WHITE, state.board.loc(3, 3)) # White
 
-    config = {"norm_kind": "batchnorm", "block_kind": "res", "trunk_num_channels": 256, "mid_num_channels": 128, "gpool_num_channels": 32, "p1_num_channels": 32}  # Use default config or load from a file
+    config = {"norm_kind": "batchnorm", "block_kind": "res", "trunk_num_channels": 256, "mid_num_channels": 128, "gpool_num_channels": 32, "p1_num_channels": 32, "g1_num_channels": 16}  # Use default config or load from a file
     pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
     model = model_pytorch.Model(config, pos_len=pos_len)
     model.load_weights(model_path)
