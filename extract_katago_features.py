@@ -2,6 +2,7 @@ import sys
 import argparse
 import os
 import urllib.request
+import zipfile
 
 # Add katago submodule to python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
@@ -29,27 +30,44 @@ class KataGoFeatureExtractor:
         self.model = self._load_katago_model(model_path, pos_len)
 
     def _load_katago_model(self, model_path, pos_len):
-        """Loads a PyTorch-native KataGo model (.pth or .ckpt), downloading it if necessary."""
-        local_model_path = os.path.basename(model_path)
+        """Loads a PyTorch-native KataGo model (.ckpt), downloading and unzipping if necessary."""
+        local_path = os.path.basename(model_path)
 
-        # Download the model if it's a URL and doesn't exist locally
-        if not os.path.exists(local_model_path) and (
-            model_path.startswith("http://")
-            or model_path.startswith("https://")
+        model_filename = local_path
+        if local_path.endswith(".zip"):
+            # The zip is expected to extract to 'model.ckpt'
+            model_filename = "model.ckpt"
+
+        # Download if the target model file doesn't exist and a URL is provided
+        if not os.path.exists(model_filename) and (
+            model_path.startswith("http://") or model_path.startswith("https://")
         ):
             print(f"Model not found locally. Downloading from {model_path}...")
-            urllib.request.urlretrieve(model_path, local_model_path)
-            print(f"Downloaded to {local_model_path}.")
 
-        if not os.path.exists(local_model_path):
+            # Add User-Agent header to avoid 403 Forbidden error
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            req = urllib.request.Request(model_path, headers=headers)
+            with urllib.request.urlopen(req) as response, open(local_path, 'wb') as out_file:
+                out_file.write(response.read())
+
+            print(f"Downloaded to {local_path}.")
+
+        # Unzip if we have a zip file and the target model doesn't exist yet
+        if local_path.endswith(".zip") and not os.path.exists(model_filename):
+            print(f"Extracting {local_path}...")
+            with zipfile.ZipFile(local_path, 'r') as zip_ref:
+                zip_ref.extractall(".")
+            print("Extraction complete.")
+
+        if not os.path.exists(model_filename):
             raise FileNotFoundError(
-                f"Model file not found at {local_model_path}. "
-                "This script requires a PyTorch-native model file (.pth or .ckpt)."
+                f"Model file not found at {model_filename}. "
+                "This script requires a PyTorch-native model file (.ckpt)."
             )
 
-        print(f"Loading PyTorch model from '{local_model_path}'")
+        print(f"Loading PyTorch model from '{model_filename}'")
         model, _, _ = load_model(
-            local_model_path, use_swa=False, device="cpu", pos_len=pos_len
+            model_filename, use_swa=False, device="cpu", pos_len=pos_len
         )
         model.eval()  # Set the model to evaluation mode
         return model
@@ -87,8 +105,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model_path",
-        default="https://media.katagotraining.org/uploaded/models/kata1/kata1-b18c384nbt-s913148160-d402956755.ckpt",
-        help="Path or URL to a KataGo PyTorch model file (.pth or .ckpt).",
+        default="https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12374138624-d5703190512.zip",
+        help="Path or URL to a KataGo PyTorch model file (.ckpt or .zip).",
     )
     args = parser.parse_args()
 
