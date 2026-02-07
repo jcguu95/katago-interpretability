@@ -153,16 +153,23 @@ class KataGoFeatureExtractor:
             return np.array([])
 
         batch_size = len(states)
+        pos_len = self.features_obj.pos_len
         # Get shapes from the features object
         binary_input_data = np.zeros(shape=[batch_size] + self.features_obj.bin_input_shape, dtype=np.float32)
         global_input_data = np.zeros(shape=[batch_size] + self.features_obj.global_input_shape, dtype=np.float32)
+
+        # The fill_row_features function expects a specific data layout (N, HW, C).
+        # We need to reshape the array before passing it to the function.
+        # This creates a view, so modifications will be reflected in the original array.
+        binary_input_data_to_fill = np.transpose(binary_input_data, axes=(0, 2, 3, 1))
+        binary_input_data_to_fill = binary_input_data_to_fill.reshape([batch_size, pos_len * pos_len, -1])
 
         for i, state in enumerate(states):
             pla = state.board.pla
             opp = Board.get_opp(pla)
             self.features_obj.fill_row_features(
                 state.board, pla, opp, state.boards, state.moves, len(state.moves), state.rules,
-                binary_input_data, global_input_data, i
+                binary_input_data_to_fill, global_input_data, i
             )
 
         extra_output_names = ["trunkfinal"]
