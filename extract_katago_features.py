@@ -10,6 +10,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'sgfmill'))
 
 from sgfmill import sgf
 from katago.game import gamestate
+from katago.data import features
 from katago.train.load_model import load_model
 import torch
 import numpy as np
@@ -147,14 +148,16 @@ class KataGoFeatureExtractor:
         if not states:
             return np.array([])
 
+        batch_size = len(states)
+        # Assumes all states have the same model input shape
+        binary_input_data = np.zeros(shape=[batch_size] + states[0].model_input_binary_shape, dtype=np.float32)
+        global_input_data = np.zeros(shape=[batch_size] + states[0].model_input_global_shape, dtype=np.float32)
+
+        for i, state in enumerate(states):
+            features.get_binary_feature_input(state, binary_input_data, i)
+            features.get_global_feature_input(state, global_input_data, i)
+
         extra_output_names = ["trunkfinal"]
-
-        # Collect model inputs from all states
-        model_inputs = [s.get_model_inputs(for_training=False, for_swa=False) for s in states]
-
-        # Stack the inputs to create a batch
-        binary_input_data = np.stack([mi["binary_input_data"] for mi in model_inputs], axis=0)
-        global_input_data = np.stack([mi["global_input_data"] for mi in model_inputs], axis=0)
 
         # Get device from model
         device = next(self.model.parameters()).device
