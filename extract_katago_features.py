@@ -88,7 +88,8 @@ class KataGoFeatureExtractor:
 
     def __init__(self, model_path, pos_len):
         """Initializes the feature extractor and loads the model."""
-        self.model = self._load_katago_model(model_path, pos_len)
+        self.model, config = self._load_katago_model(model_path, pos_len)
+        self.features_obj = features.Features(config, pos_len)
 
     def _load_katago_model(self, model_path, pos_len):
         """Loads a PyTorch-native KataGo model (.ckpt), downloading and unzipping if necessary."""
@@ -128,11 +129,11 @@ class KataGoFeatureExtractor:
             )
 
         print(f"Loading PyTorch model from '{model_filename}'")
-        model, _, _ = load_model(
+        model, config, _ = load_model(
             model_filename, use_swa=False, device="cpu", pos_len=pos_len
         )
         model.eval()  # Set the model to evaluation mode
-        return model
+        return model, config
 
     def extract_trunkfinal_output(self, state):
         """Extracts the 'trunkfinal' layer from KataGo's neural network."""
@@ -149,13 +150,15 @@ class KataGoFeatureExtractor:
             return np.array([])
 
         batch_size = len(states)
-        # Assumes all states have the same model input shape
-        binary_input_data = np.zeros(shape=[batch_size] + states[0].model_input_binary_shape, dtype=np.float32)
-        global_input_data = np.zeros(shape=[batch_size] + states[0].model_input_global_shape, dtype=np.float32)
+        # Get shapes from the features object
+        binary_input_data = np.zeros(shape=[batch_size] + self.features_obj.bin_input_shape, dtype=np.float32)
+        global_input_data = np.zeros(shape=[batch_size] + self.features_obj.global_input_shape, dtype=np.float32)
 
         for i, state in enumerate(states):
-            features.get_binary_feature_input(state, binary_input_data, i)
-            features.get_global_feature_input(state, global_input_data, i)
+            self.features_obj.fill_row_features(
+                state.board, state.pla, state.opp, state.boards, state.moves, len(state.moves), state.rules,
+                binary_input_data, global_input_data, i
+            )
 
         extra_output_names = ["trunkfinal"]
 
