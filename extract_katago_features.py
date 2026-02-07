@@ -53,7 +53,7 @@ def get_state_from_sgf(sgf_file, variation_path_str):
         try:
             node = node[branch_index]
         except IndexError:
-            raise ValueError(f"Invalid variation path: branch index {branch_index} out of range.")
+            raise ValueError(f"Invalid variation path: branch index {branch_index} is out of range for a node with {len(node)} children.")
 
         if node.has_property('B'):
             color, point = "B", node.get('B')
