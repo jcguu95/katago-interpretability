@@ -21,10 +21,10 @@ def get_state_from_sgf(sgf_file, move_number):
     if not os.path.exists(sgf_file):
         raise FileNotFoundError(f"SGF file not found: {sgf_file}")
 
-    with open(sgf_file, "r") as f:
+    with open(sgf_file, "rb") as f:
         sgf_content = f.read()
 
-    game = sgf.Sgf_game.from_string(sgf_content.encode("utf-8"))
+    game = sgf.Sgf_game.from_bytes(sgf_content)
     board_size = game.get_size()
     state = gamestate.GameState(board_size=board_size, rules=gamestate.GameState.RULES_TT)
 
