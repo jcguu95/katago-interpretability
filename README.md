@@ -38,3 +38,11 @@ This script was developed to work in a constrained, pure-Python environment (lik
 5.  **Download and Extraction Logic**: The script was enhanced to handle downloading the model from a URL, adding a `User-Agent` header to bypass `403 Forbidden` errors, and correctly extracting the model file from its `.zip` archive into a subdirectory.
 
 This iterative process of diagnosing errors and adapting the strategy was key to achieving a working solution within the environment's constraints.
+
+## Testing
+
+This repository includes a test suite to verify the script's command-line interface and core functionality. To run the tests, execute the following command from the root directory:
+
+```bash
+python -m unittest test_extract_katago_features.py
+```

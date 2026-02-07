@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0 - 2026-02-07
+
+- Added a test suite (`test_extract_katago_features.py`) to verify command-line functionality and prevent regressions.
+
 ## 0.1.0 - 2026-02-07
 
 - Implemented SGF parsing to extract features from any node in a game tree, including variations.
