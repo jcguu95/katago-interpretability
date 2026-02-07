@@ -146,18 +146,32 @@ def extract_features(args):
     Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
     """
     if args.sgf_file:
-        print(f"--- Loading game state from {args.sgf_file} at move {args.move_number} ---")
-        state = get_state_from_sgf(args.sgf_file, args.move_number)
+        # Determine board size from SGF before initializing the extractor
+        try:
+            with open(args.sgf_file, "rb") as f:
+                game = sgf.Sgf_game.from_bytes(f.read())
+            pos_len = game.get_size()
+        except Exception as e:
+            print(f"Warning: Could not determine board size from SGF, defaulting to 19. Error: {e}")
+            pos_len = 19
+
+        extractor = KataGoFeatureExtractor(args.model_path, pos_len)
+
+        print(f"--- Extracting features for first 20 moves from {args.sgf_file} ---")
+        for move_num in range(20):
+            state = get_state_from_sgf(args.sgf_file, move_num)
+            trunkfinal_output = extractor.extract_trunkfinal_output(state)
+            print(f"Move {move_num}: {trunkfinal_output[0][0][0]}")
+
     else:
         print("--- Using initial demo game state ---")
         state = initialize_game_state()
+        pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
+        extractor = KataGoFeatureExtractor(args.model_path, pos_len)
 
-    pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
-    extractor = KataGoFeatureExtractor(args.model_path, pos_len)
-
-    print("\n--- Extracting features for the specified game state ---")
-    trunkfinal_output = extractor.extract_trunkfinal_output(state)
-    print_trunkfinal_output(trunkfinal_output)
+        print("\n--- Extracting features for the specified game state ---")
+        trunkfinal_output = extractor.extract_trunkfinal_output(state)
+        print_trunkfinal_output(trunkfinal_output)
 
 
 if __name__ == "__main__":
