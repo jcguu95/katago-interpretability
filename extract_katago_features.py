@@ -12,6 +12,7 @@ from sgfmill import sgf
 from katago.game import gamestate
 from katago.game import features
 from katago.train.load_model import load_model
+from katago.train.model_pytorch import ExtraOutputs
 import torch
 import numpy as np
 from katago.game.board import Board
@@ -173,6 +174,7 @@ class KataGoFeatureExtractor:
             )
 
         extra_output_names = ["trunkfinal"]
+        extra_outputs = ExtraOutputs(extra_output_names)
 
         # Get device from model
         device = next(self.model.parameters()).device
@@ -182,13 +184,13 @@ class KataGoFeatureExtractor:
         global_input_data_tensor = torch.from_numpy(global_input_data).to(device)
 
         with torch.no_grad():
-            outputs = self.model.forward(
+            self.model.forward(
                 binary_input_data_tensor,
                 global_input_data_tensor,
-                extra_output_names=extra_output_names
+                extra_outputs=extra_outputs
             )
 
-        trunkfinal_output_batch = outputs["trunkfinal"].cpu().numpy()
+        trunkfinal_output_batch = extra_outputs.returned["trunkfinal"].cpu().numpy()
         return trunkfinal_output_batch
 
 
