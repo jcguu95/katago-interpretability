@@ -4,14 +4,66 @@ import os
 import urllib.request
 import zipfile
 
-# Add katago submodule to python path
+# Add submodules to python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'sgfmill'))
 
+from sgfmill import sgf
 from katago.game import gamestate
 from katago.train.load_model import load_model
 import torch
 from katago.game.board import Board
 # from katago.game import rules
+
+
+def get_state_from_sgf(sgf_file, move_number):
+    """Loads a game state from an SGF file at a specific move number."""
+    if not os.path.exists(sgf_file):
+        raise FileNotFoundError(f"SGF file not found: {sgf_file}")
+
+    with open(sgf_file, "r") as f:
+        sgf_content = f.read()
+
+    game = sgf.Sgf_game.from_string(sgf_content.encode("utf-8"))
+    board_size = game.get_size()
+    state = gamestate.GameState(board_size=board_size, rules=gamestate.GameState.RULES_TT)
+
+    node = game.get_root()
+
+    # Handle setup stones (handicap)
+    if node.has_property('AB'):
+        for point in node.get('AB'):
+            row, col = point
+            state.play(Board.BLACK, state.board.loc(col, row))
+    if node.has_property('AW'):
+        for point in node.get('AW'):
+            row, col = point
+            state.play(Board.WHITE, state.board.loc(col, row))
+
+    # Replay moves to reach the desired move number
+    for i in range(move_number):
+        try:
+            node = node[0]  # Get next node in main variation
+        except IndexError:
+            print(f"Warning: SGF file has fewer than {move_number} moves. Stopping at move {i}.")
+            break
+
+        if node.has_property('B'):
+            color, point = "B", node.get('B')
+        elif node.has_property('W'):
+            color, point = "W", node.get('W')
+        else:
+            # Not a move node (e.g., commentary), so we skip it
+            continue
+
+        player = Board.BLACK if color == 'B' else Board.WHITE
+        if point is None:  # Pass
+            state.play_pass(player)
+        else:
+            row, col = point
+            state.play(player, state.board.loc(col, row))
+
+    return state
 
 
 def initialize_game_state():
@@ -89,33 +141,23 @@ def print_trunkfinal_output(trunkfinal_output):
     print("Trunkfinal output:", trunkfinal_output)
 
 
-def extract_features(model_path):
+def extract_features(args):
     """
     Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
     """
-    state = initialize_game_state()
-    pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
-    extractor = KataGoFeatureExtractor(model_path, pos_len)
-
-    print("--- Features for Initial Game State ---")
-    trunkfinal_output_1 = extractor.extract_trunkfinal_output(state)
-    print_trunkfinal_output(trunkfinal_output_1)
-
-    # Add another move and extract features again
-    print("\n--- Features for Game State After One More Move ---")
-    state.play(Board.BLACK, state.board.loc(4, 4))
-    trunkfinal_output_2 = extractor.extract_trunkfinal_output(state)
-    print_trunkfinal_output(trunkfinal_output_2)
-
-    # Test: Verify that the features are different after a move
-    # The model returns numpy arrays; convert them to tensors for comparison
-    tensor1 = torch.from_numpy(trunkfinal_output_1)
-    tensor2 = torch.from_numpy(trunkfinal_output_2)
-    if not torch.equal(tensor1, tensor2):
-        print("\n--- Test Passed: Feature outputs are different after a move. ---")
+    if args.sgf_file:
+        print(f"--- Loading game state from {args.sgf_file} at move {args.move_number} ---")
+        state = get_state_from_sgf(args.sgf_file, args.move_number)
     else:
-        print("\n--- Test Failed: Feature outputs are identical after a move. ---")
-        sys.exit(1)
+        print("--- Using initial demo game state ---")
+        state = initialize_game_state()
+
+    pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
+    extractor = KataGoFeatureExtractor(args.model_path, pos_len)
+
+    print("\n--- Extracting features for the specified game state ---")
+    trunkfinal_output = extractor.extract_trunkfinal_output(state)
+    print_trunkfinal_output(trunkfinal_output)
 
 
 if __name__ == "__main__":
@@ -123,10 +165,20 @@ if __name__ == "__main__":
         description="Extract KataGo features from a game state."
     )
     parser.add_argument(
-        "--model_path",
+        "--model-path",
         default="https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12374138624-d5703190512.zip",
         help="Path or URL to a KataGo PyTorch model file (.ckpt or .zip).",
     )
+    parser.add_argument(
+        "--sgf-file",
+        help="Path to an SGF file to load the game state from.",
+    )
+    parser.add_argument(
+        "--move-number",
+        type=int,
+        default=0,
+        help="Move number to extract features from (default: 0 for the root position).",
+    )
     args = parser.parse_args()
 
-    extract_features(args.model_path)
+    extract_features(args)
