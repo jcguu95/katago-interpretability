@@ -1,1 +1,15 @@
 .aider*
+# Python artifacts
+__pycache__/
+venv/
+
+# Caches and local config
+.cache/
+.pki/
+
+# Downloaded KataGo models and archives
+*.zip
+kata1-*/
+
+# Test artifacts
+test.sgf

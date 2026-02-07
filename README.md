@@ -6,7 +6,10 @@ This script, `extract_katago_features.py`, demonstrates how to load a pre-traine
 
 ## How to Use
 
-1.  **Setup**: Ensure you have a Python environment with `torch` installed.
+1.  **Setup**: Ensure you have a Python environment and install the required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
 2.  **Run**: Execute the script to extract features from SGF files. You can specify multiple nodes from different SGF files, and they will be processed together in an efficient batch.
 
