@@ -204,35 +204,42 @@ def extract_features(args):
     """
     Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
     """
-    if args.sgf_file:
+    if args.sgf_node:
+        # Group all sgf-node pairs for a single batch run
+        nodes_to_process = args.sgf_node
+
         # Initialize the extractor once, assuming all SGFs have the same board size.
+        first_sgf_file = nodes_to_process[0][0]
         try:
-            with open(args.sgf_file[0], "rb") as f:
+            with open(first_sgf_file, "rb") as f:
                 game = sgf.Sgf_game.from_bytes(f.read())
             pos_len = game.get_size()
         except Exception as e:
-            print(f"Warning: Could not determine board size from {args.sgf_file[0]}, defaulting to 19. Error: {e}", file=sys.stderr)
+            print(f"Warning: Could not determine board size from {first_sgf_file}, defaulting to 19. Error: {e}", file=sys.stderr)
             pos_len = 19
         extractor = KataGoFeatureExtractor(args.model_path, pos_len)
 
-        for sgf_filepath in args.sgf_file:
-            print(f"\n--- Processing SGF file: {sgf_filepath} ---")
+        print("--- Preparing batch from all specified SGF nodes ---")
+        states = []
+        valid_nodes = []
+        for sgf_filepath, path in nodes_to_process:
             try:
-                states = [get_state_from_sgf(sgf_filepath, path) for path in args.variation_path]
+                states.append(get_state_from_sgf(sgf_filepath, path))
+                valid_nodes.append((sgf_filepath, path))
             except (FileNotFoundError, ValueError) as e:
-                print(f"Error processing {sgf_filepath}: {e}", file=sys.stderr)
+                print(f"Error processing {sgf_filepath} with path '{path}': {e}", file=sys.stderr)
                 continue
 
-            if not states:
-                print(f"No valid game states to process for {sgf_filepath}.")
-                continue
+        if not states:
+            print("No valid game states to process.")
+            return
 
-            print(f"--- Extracting features for {len(states)} positions from {sgf_filepath} in a batch ---")
-            trunkfinal_outputs = extractor.extract_trunkfinal_output_batch(states)
+        print(f"--- Extracting features for {len(states)} positions in a single batch ---")
+        trunkfinal_outputs = extractor.extract_trunkfinal_output_batch(states)
 
-            for i, path in enumerate(args.variation_path):
-                print(f"\n--- Features for path '{path or 'root'}' ---")
-                print_trunkfinal_output(trunkfinal_outputs[i])
+        for i, (sgf_filepath, path) in enumerate(valid_nodes):
+            print(f"\n--- Features for {sgf_filepath} at path '{path or 'root'}' ---")
+            print_trunkfinal_output(trunkfinal_outputs[i])
 
     else:
         print("--- Using initial demo game state ---")
@@ -255,16 +262,11 @@ if __name__ == "__main__":
         help="Path or URL to a KataGo PyTorch model file (.ckpt or .zip).",
     )
     parser.add_argument(
-        "--sgf-file",
-        nargs='+',
-        help="Path(s) to one or more SGF files to process.",
-    )
-    parser.add_argument(
-        "--variation-path",
-        type=str,
-        nargs='*',
-        default=[""],
-        help="One or more comma-separated paths of variation indices (e.g., '0,1,0' '0,0,1'). Default is the root position.",
+        '--sgf-node',
+        nargs=2,
+        action='append',
+        metavar=('SGF_FILE', 'VARIATION_PATH'),
+        help='Pair of SGF file and variation path to extract features from. Can be specified multiple times for batch processing.'
     )
     args = parser.parse_args()
 

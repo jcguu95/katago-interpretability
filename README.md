@@ -15,11 +15,11 @@ This script, `extract_katago_features.py`, demonstrates how to load a pre-traine
 
     You can specify one or more nodes from an SGF file using a variation path. The path is a comma-separated list of indices that navigate the game tree. An empty path `""` refers to the root position.
 
-    **Example: Extract features for multiple nodes from multiple SGF files**
+    **Example: Extract features for specific nodes from different SGF files**
     ```bash
-    python extract_katago_features.py --sgf-file test.sgf test2.sgf --variation-path "" "0,0"
+    python extract_katago_features.py --sgf-node test.sgf "" --sgf-node test.sgf "0,0" --sgf-node test2.sgf "0,0,1"
     ```
-    This command will process both `test.sgf` and `test2.sgf`. For each file, it will extract features for two positions (the root and the node at path `0,0`) in a single batch for efficiency.
+    This command specifies three different positions from two SGF files. The script will process all of them together in a single, efficient batch.
 
     On the first run, the script will automatically download a pre-trained KataGo model. This is a large file and may take some time. On subsequent runs, it will use the local copy.
 
