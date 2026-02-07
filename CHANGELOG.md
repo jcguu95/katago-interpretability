@@ -5,6 +5,7 @@
 - Implemented SGF parsing to extract features from any node in a game tree, including variations.
 - Added `--sgf-file` and `--variation-path` arguments.
 - Implemented batch processing to extract features for multiple game states in a single pass, improving performance.
+- The `--sgf-file` argument now accepts multiple file paths.
 
 ## 0.0.0 - 2026-02-07
 

@@ -205,23 +205,34 @@ def extract_features(args):
     Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
     """
     if args.sgf_file:
-        # Batch processing for all specified variation paths
-        print(f"--- Loading game states from {args.sgf_file} ---")
-        states = [get_state_from_sgf(args.sgf_file, path) for path in args.variation_path]
-
-        if not states:
-            print("No valid game states to process.")
-            return
-
-        pos_len = states[0].board_size if isinstance(states[0].board_size, int) else states[0].board_size[0]
+        # Initialize the extractor once, assuming all SGFs have the same board size.
+        try:
+            with open(args.sgf_file[0], "rb") as f:
+                game = sgf.Sgf_game.from_bytes(f.read())
+            pos_len = game.get_size()
+        except Exception as e:
+            print(f"Warning: Could not determine board size from {args.sgf_file[0]}, defaulting to 19. Error: {e}", file=sys.stderr)
+            pos_len = 19
         extractor = KataGoFeatureExtractor(args.model_path, pos_len)
 
-        print("\n--- Extracting features for the specified game states in a batch ---")
-        trunkfinal_outputs = extractor.extract_trunkfinal_output_batch(states)
+        for sgf_filepath in args.sgf_file:
+            print(f"\n--- Processing SGF file: {sgf_filepath} ---")
+            try:
+                states = [get_state_from_sgf(sgf_filepath, path) for path in args.variation_path]
+            except (FileNotFoundError, ValueError) as e:
+                print(f"Error processing {sgf_filepath}: {e}", file=sys.stderr)
+                continue
 
-        for i, path in enumerate(args.variation_path):
-            print(f"\n--- Features for path '{path or 'root'}' ---")
-            print_trunkfinal_output(trunkfinal_outputs[i])
+            if not states:
+                print(f"No valid game states to process for {sgf_filepath}.")
+                continue
+
+            print(f"--- Extracting features for {len(states)} positions from {sgf_filepath} in a batch ---")
+            trunkfinal_outputs = extractor.extract_trunkfinal_output_batch(states)
+
+            for i, path in enumerate(args.variation_path):
+                print(f"\n--- Features for path '{path or 'root'}' ---")
+                print_trunkfinal_output(trunkfinal_outputs[i])
 
     else:
         print("--- Using initial demo game state ---")
@@ -245,7 +256,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--sgf-file",
-        help="Path to an SGF file to load the game state from.",
+        nargs='+',
+        help="Path(s) to one or more SGF files to process.",
     )
     parser.add_argument(
         "--variation-path",
