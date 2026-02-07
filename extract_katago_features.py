@@ -107,6 +107,13 @@ def extract_features(model_path):
     trunkfinal_output_2 = extractor.extract_trunkfinal_output(state)
     print_trunkfinal_output(trunkfinal_output_2)
 
+    # Test: Verify that the features are different after a move
+    if not torch.equal(trunkfinal_output_1, trunkfinal_output_2):
+        print("\n--- Test Passed: Feature outputs are different after a move. ---")
+    else:
+        print("\n--- Test Failed: Feature outputs are identical after a move. ---")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
