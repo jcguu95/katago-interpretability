@@ -10,7 +10,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'sgfmill'))
 
 from sgfmill import sgf
 from katago.game import gamestate
-from katago.data import features
+from katago.model import features
 from katago.train.load_model import load_model
 import torch
 import numpy as np
