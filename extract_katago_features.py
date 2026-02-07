@@ -158,8 +158,10 @@ class KataGoFeatureExtractor:
         global_input_data = np.zeros(shape=[batch_size] + self.features_obj.global_input_shape, dtype=np.float32)
 
         for i, state in enumerate(states):
+            pla = state.board.pla
+            opp = Board.get_opp(pla)
             self.features_obj.fill_row_features(
-                state.board, state.pla, state.opp, state.boards, state.moves, len(state.moves), state.rules,
+                state.board, pla, opp, state.boards, state.moves, len(state.moves), state.rules,
                 binary_input_data, global_input_data, i
             )
 
