@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 - 2026-02-07
+
+- **fix**: The script now exits with a non-zero status code if all specified SGF nodes fail to process, making error handling more robust for scripting.
+
 ## 0.2.0 - 2026-02-07
 
 - Added a test suite (`test_extract_katago_features.py`) to verify command-line functionality and prevent regressions.

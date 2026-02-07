@@ -231,7 +231,10 @@ def extract_features(args):
                 continue
 
         if not states:
-            print("No valid game states to process.")
+            print("No valid game states to process.", file=sys.stderr)
+            # If nodes were requested but none could be processed, it's an error.
+            if nodes_to_process:
+                sys.exit(1)
             return
 
         print(f"--- Extracting features for {len(states)} positions in a single batch ---")
