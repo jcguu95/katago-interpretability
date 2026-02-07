@@ -16,8 +16,8 @@ from katago.game.board import Board
 # from katago.game import rules
 
 
-def get_state_from_sgf(sgf_file, move_number):
-    """Loads a game state from an SGF file at a specific move number."""
+def get_state_from_sgf(sgf_file, variation_path_str):
+    """Loads a game state from an SGF file at a specific node, specified by a variation path."""
     if not os.path.exists(sgf_file):
         raise FileNotFoundError(f"SGF file not found: {sgf_file}")
 
@@ -30,7 +30,7 @@ def get_state_from_sgf(sgf_file, move_number):
 
     node = game.get_root()
 
-    # Handle setup stones (handicap)
+    # Handle setup stones (handicap) from root node
     if node.has_property('AB'):
         for point in node.get('AB'):
             row, col = point
@@ -40,13 +40,20 @@ def get_state_from_sgf(sgf_file, move_number):
             row, col = point
             state.play(Board.WHITE, state.board.loc(col, row))
 
-    # Replay moves to reach the desired move number
-    for i in range(move_number):
+    # Parse variation path
+    path_indices = []
+    if variation_path_str:
         try:
-            node = node[0]  # Get next node in main variation
+            path_indices = [int(i) for i in variation_path_str.split(',')]
+        except ValueError:
+            raise ValueError("Invalid variation path. Must be comma-separated integers.")
+
+    # Replay moves along the path to reach the desired node
+    for branch_index in path_indices:
+        try:
+            node = node[branch_index]
         except IndexError:
-            print(f"Warning: SGF file has fewer than {move_number} moves. Stopping at move {i}.")
-            break
+            raise ValueError(f"Invalid variation path: branch index {branch_index} out of range.")
 
         if node.has_property('B'):
             color, point = "B", node.get('B')
@@ -146,22 +153,15 @@ def extract_features(args):
     Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
     """
     if args.sgf_file:
-        # Determine board size from SGF before initializing the extractor
-        try:
-            with open(args.sgf_file, "rb") as f:
-                game = sgf.Sgf_game.from_bytes(f.read())
-            pos_len = game.get_size()
-        except Exception as e:
-            print(f"Warning: Could not determine board size from SGF, defaulting to 19. Error: {e}")
-            pos_len = 19
+        print(f"--- Loading game state from {args.sgf_file} at path '{args.variation_path}' ---")
+        state = get_state_from_sgf(args.sgf_file, args.variation_path)
 
+        pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
         extractor = KataGoFeatureExtractor(args.model_path, pos_len)
 
-        print(f"--- Extracting features for first 20 moves from {args.sgf_file} ---")
-        for move_num in range(20):
-            state = get_state_from_sgf(args.sgf_file, move_num)
-            trunkfinal_output = extractor.extract_trunkfinal_output(state)
-            print(f"Move {move_num}: {trunkfinal_output[0][0][0]}")
+        print("\n--- Extracting features for the specified game state ---")
+        trunkfinal_output = extractor.extract_trunkfinal_output(state)
+        print_trunkfinal_output(trunkfinal_output)
 
     else:
         print("--- Using initial demo game state ---")
@@ -188,10 +188,10 @@ if __name__ == "__main__":
         help="Path to an SGF file to load the game state from.",
     )
     parser.add_argument(
-        "--move-number",
-        type=int,
-        default=0,
-        help="Move number to extract features from (default: 0 for the root position).",
+        "--variation-path",
+        type=str,
+        default="",
+        help="Comma-separated path of variation indices to specify the node (e.g., '0,1,0'). Default is empty for the root position.",
     )
     args = parser.parse_args()
 
