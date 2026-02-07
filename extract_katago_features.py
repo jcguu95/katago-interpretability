@@ -89,6 +89,9 @@ class KataGoFeatureExtractor:
     def __init__(self, model_path, pos_len):
         """Initializes the feature extractor and loads the model."""
         self.model, config = self._load_katago_model(model_path, pos_len)
+        # If config is not returned by load_model, try to get it from the model object
+        if config is None and hasattr(self.model, 'config'):
+            config = self.model.config
         self.features_obj = features.Features(config, pos_len)
 
     def _load_katago_model(self, model_path, pos_len):
