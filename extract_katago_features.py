@@ -108,7 +108,10 @@ def extract_features(model_path):
     print_trunkfinal_output(trunkfinal_output_2)
 
     # Test: Verify that the features are different after a move
-    if not torch.equal(trunkfinal_output_1, trunkfinal_output_2):
+    # The model returns numpy arrays; convert them to tensors for comparison
+    tensor1 = torch.from_numpy(trunkfinal_output_1)
+    tensor2 = torch.from_numpy(trunkfinal_output_2)
+    if not torch.equal(tensor1, tensor2):
         print("\n--- Test Passed: Feature outputs are different after a move. ---")
     else:
         print("\n--- Test Failed: Feature outputs are identical after a move. ---")
