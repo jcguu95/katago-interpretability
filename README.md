@@ -11,13 +11,17 @@ This script, `extract_katago_features.py`, demonstrates how to load a pre-traine
     . venv/bin/activate
     ```
 
-2.  **Run the script**: Execute the script from the command line:
-    ```bash
-    python extract_katago_features.py
-    ```
-    On the first run, the script will automatically download a pre-trained KataGo model checkpoint from the official KataGo training website. This is a large file and may take some time. The script will then unzip it and load the model. On subsequent runs, it will use the already downloaded file.
+2.  **Run the script**: Execute the script to extract features from an SGF file.
 
-    The script will output the shape and contents of the `trunkfinal` tensor for two different board states to demonstrate that the feature extraction is working correctly.
+    You can specify one or more nodes from an SGF file using a variation path. The path is a comma-separated list of indices that navigate the game tree. An empty path `""` refers to the root position.
+
+    **Example: Extract features for multiple nodes in a batch**
+    ```bash
+    python extract_katago_features.py --sgf-file test2.sgf --variation-path "" "0" "0,0,1"
+    ```
+    This command will load `test2.sgf` and extract features for three positions: the root, the first move, and a move in a secondary variation. The processing is done in a single batch for efficiency.
+
+    On the first run, the script will automatically download a pre-trained KataGo model. This is a large file and may take some time. On subsequent runs, it will use the local copy.
 
 ## Developer Notes: Obstacles Overcome
 

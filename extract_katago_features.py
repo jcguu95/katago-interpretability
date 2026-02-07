@@ -12,6 +12,7 @@ from sgfmill import sgf
 from katago.game import gamestate
 from katago.train.load_model import load_model
 import torch
+import numpy as np
 from katago.game.board import Board
 # from katago.game import rules
 
@@ -141,6 +142,37 @@ class KataGoFeatureExtractor:
         trunkfinal_output = outputs["trunkfinal"]
         return trunkfinal_output
 
+    def extract_trunkfinal_output_batch(self, states):
+        """Extracts 'trunkfinal' layer for a batch of game states."""
+        if not states:
+            return np.array([])
+
+        extra_output_names = ["trunkfinal"]
+
+        # Collect model inputs from all states
+        model_inputs = [s.get_model_inputs(for_training=False, for_swa=False) for s in states]
+
+        # Stack the inputs to create a batch
+        binary_input_data = np.stack([mi["binary_input_data"] for mi in model_inputs], axis=0)
+        global_input_data = np.stack([mi["global_input_data"] for mi in model_inputs], axis=0)
+
+        # Get device from model
+        device = next(self.model.parameters()).device
+
+        # Convert to tensors
+        binary_input_data_tensor = torch.from_numpy(binary_input_data).to(device)
+        global_input_data_tensor = torch.from_numpy(global_input_data).to(device)
+
+        with torch.no_grad():
+            outputs = self.model.forward(
+                binary_input_data_tensor,
+                global_input_data_tensor,
+                extra_output_names=extra_output_names
+            )
+
+        trunkfinal_output_batch = outputs["trunkfinal"].cpu().numpy()
+        return trunkfinal_output_batch
+
 
 def print_trunkfinal_output(trunkfinal_output):
     """Prints the trunkfinal output."""
@@ -153,15 +185,23 @@ def extract_features(args):
     Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
     """
     if args.sgf_file:
-        print(f"--- Loading game state from {args.sgf_file} at path '{args.variation_path}' ---")
-        state = get_state_from_sgf(args.sgf_file, args.variation_path)
+        # Batch processing for all specified variation paths
+        print(f"--- Loading game states from {args.sgf_file} ---")
+        states = [get_state_from_sgf(args.sgf_file, path) for path in args.variation_path]
 
-        pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
+        if not states:
+            print("No valid game states to process.")
+            return
+
+        pos_len = states[0].board_size if isinstance(states[0].board_size, int) else states[0].board_size[0]
         extractor = KataGoFeatureExtractor(args.model_path, pos_len)
 
-        print("\n--- Extracting features for the specified game state ---")
-        trunkfinal_output = extractor.extract_trunkfinal_output(state)
-        print_trunkfinal_output(trunkfinal_output)
+        print("\n--- Extracting features for the specified game states in a batch ---")
+        trunkfinal_outputs = extractor.extract_trunkfinal_output_batch(states)
+
+        for i, path in enumerate(args.variation_path):
+            print(f"\n--- Features for path '{path or 'root'}' ---")
+            print_trunkfinal_output(trunkfinal_outputs[i])
 
     else:
         print("--- Using initial demo game state ---")
@@ -190,8 +230,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--variation-path",
         type=str,
-        default="",
-        help="Comma-separated path of variation indices to specify the node (e.g., '0,1,0'). Default is empty for the root position.",
+        nargs='*',
+        default=[""],
+        help="One or more comma-separated paths of variation indices (e.g., '0,1,0' '0,0,1'). Default is the root position.",
     )
     args = parser.parse_args()
 
