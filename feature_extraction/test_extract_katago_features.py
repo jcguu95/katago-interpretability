@@ -92,9 +92,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
             if os.path.exists(filename):
                 os.remove(filename)
 
-        # Clean up model files
-        if cls.model_zip_path and os.path.exists(cls.model_zip_path):
-            os.remove(cls.model_zip_path)
+        # Clean up extracted model dir, but not the downloaded zip archive
         if cls.model_dir_path and os.path.exists(cls.model_dir_path):
             shutil.rmtree(cls.model_dir_path)
 

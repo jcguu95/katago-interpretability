@@ -142,6 +142,7 @@ visualize-sae: $(SAE_MODEL_FILE)
 clean:
 	@echo "Cleaning up..."
 	rm -rf $(VENV_DIR)
+	rm -f test.sgf test2.sgf
 	rm -rf $(patsubst %.zip,%,$(MODEL_ZIP))
 	rm -rf $(SGF_DIR) $(ACTIVATIONS_DIR)
 	@if [ -d "feature_extraction" ]; then $(MAKE) -C feature_extraction clean; fi

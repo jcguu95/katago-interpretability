@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.5 - 2026-02-08
+
+- **fix**: The feature extractor test suite (`test_extract_katago_features.py`) no longer deletes the downloaded model archive on completion. This ensures the model is cached between test runs and fixes a `FileNotFoundError` when `make test-extractor` was run after a full test.
+- **fix**: Corrected paths in `.gitignore` for temporary test SGF files and improved the root `clean` target.
+
 ## 0.9.4 - 2026-02-08
 
 - **fix**: Fixed a `FileNotFoundError` in the feature extractor test suite by correcting the hardcoded script path in `test_extract_katago_features.py`.
