@@ -91,7 +91,7 @@ The structure of the `PolicyHead` directly answers some important questions abou
 
 **1. Does the policy head compute its output in "one blow"?**
 
-No. As detailed in the "Dual Branches" and "Final Layers" descriptions above (and in the comments in `model_pytorch.py`), the `PolicyHead` is a multi-step sub-network. After the initial branches, the combined tensor passes through a sequence of `Normalization -> Activation -> Convolution`, which acts as a hidden layer before the final output. It is not a simple linear mapping from `trunkfinal`.
+No. As detailed in the "Dual Branches" and "Final Layers" descriptions above, the `PolicyHead` is a multi-step sub-network. After the initial branches, the combined tensor passes through a sequence of `Normalization -> Activation -> Convolution`, which acts as a hidden layer before the final output. It is not a simple linear mapping from `trunkfinal`.
 
 **2. Can the policy head judge a move's importance from only the local 512-dim vector?**
 
@@ -108,3 +108,20 @@ This confirms the intuition that global context (e.g., "is a large group in dang
 This architecture validates the concern that treating each 512-dimensional vector independently is a significant simplification. Our current SAE is trained to find a sparse basis for the *local* feature vectors only. It has no access to the global context that the real `PolicyHead` uses.
 
 While this is a limitation, it is also a deliberate research choice. By starting with this simpler model, we can first try to understand the "translation-invariant" features that exist at individual points. Future work could build on this by designing an SAE architecture that also incorporates this kind of global context.
+
+### 7. The Role of Search and Justification for Focusing on the Policy Network
+
+Typically, a Go AI like KataGo does not just use the raw output of its neural network. It feeds the policy and value predictions into a search algorithm (like MCTS) to explore future possibilities and refine its move choice.
+
+However, a key unpublished observation by Jin-Cheng Guu is that **KataGo's raw policy network, without any search, is strong enough to beat high-dan amateur players**. This is a profound finding, as it implies that the `trunkfinal` representation and the subsequent `PolicyHead` processing are sufficient to encode a very high level of Go knowledge.
+
+**Implications for our work:**
+
+1.  **Justification of Focus**: This finding strongly justifies our project's focus on analyzing the network's internal representations directly, as these representations are proven to be highly capable on their own. We can temporarily disregard the complexity of the search algorithm.
+2.  **Primacy of the Policy Head**: Without search, the move choice is determined almost entirely by the policy head's output. The value head is used during training to help the network learn, but in a no-search inference setting, it is the policy network that dictates the action. This suggests that the most "important" representations for move choice are likely within the policy head itself.
+
+**The "Penultimate" Policy Layer as a Future Target**
+
+Given the above, if the features learned from `trunkfinal` are too general, a more powerful target for analysis would be the "penultimate" layer of the policy head. This is the last layer of activations *before* the final convolution that projects down to the policy logits.
+
+In `katago/python/katago/train/model_pytorch.py`, this corresponds to the tensor `outp` after the `self.act2(outp)` call (line 1488), but before `self.conv2p(outp)`. This tensor has a shape of `(N, c_p1, H, W)` (e.g., `(N, 256, 19, 19)`) and represents the policy head's final, refined spatial understanding before move selection. Training an SAE on this layer could reveal features that are much more directly tied to move evaluation.

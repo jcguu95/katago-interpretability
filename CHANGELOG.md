@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.10 - 2026-02-08
+
+- **docs**: Documented the significant finding (unpublished observation by Jin-Cheng Guu) that KataGo's raw policy network, without any search, is strong enough to beat high-dan players. This justifies our focus on understanding the network's internal representations directly.
+- **docs**: Identified the policy head's penultimate layer as a potential future target for feature extraction, offering a representation that is more specialized for move prediction than `trunkfinal`.
+
 ## 0.11.9 - 2026-02-08
 
 - **docs**: Deepened the analysis of KataGo's `PolicyHead`, documenting that it uses both local (per-point) and global (whole-board) information to evaluate moves. This clarifies the limitations of our current SAE, which only sees local features.
