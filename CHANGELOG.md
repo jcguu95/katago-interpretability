@@ -2,8 +2,7 @@
 
 ## 0.10.8 - 2026-02-08
 
-- **refactor**: Renamed a variable in `model_pytorch.py` to `trunkfinal_output` to make it explicit that this tensor is the input to the policy and value heads.
-- **docs**: Updated architecture document to reflect the variable rename.
+- **docs**: Corrected and clarified the architecture document. The `trunkfinal` tensor is named `out` in the source code when passed to the policy/value heads, and this is now explicitly stated. This reverts a previous documentation change that incorrectly reflected a rejected code modification.
 
 ## 0.10.7 - 2026-02-08
 

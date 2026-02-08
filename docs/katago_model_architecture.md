@@ -33,8 +33,8 @@ After the tensor has passed through all residual blocks, it undergoes one final 
 Within the `Model.forward` method, after the loop over `self.blocks` is complete, the following steps occur:
 
 1.  `out = self.norm_trunkfinal(out, ...)` (line 1960): A final normalization layer is applied.
-2.  `trunkfinal_output = self.act_trunkfinal(out)` (line 1961): A final activation function is applied, and the result is named `trunkfinal_output` for clarity.
-3.  **`extra_outputs.report("trunkfinal", trunkfinal_output)`** (line 1964): This tensor is explicitly captured for feature extraction.
+2.  `out = self.act_trunkfinal(out)` (line 1961): A final activation function (e.g., ReLU) is applied.
+3.  **`extra_outputs.report("trunkfinal", out)`** (line 1964): The resulting tensor is explicitly captured and given the name `"trunkfinal"`.
 
 The shape of this `trunkfinal` tensor is `(N, C, H, W)`, where:
 
@@ -49,9 +49,9 @@ This tensor is a rich, high-dimensional representation of the board state, which
 
 The `trunkfinal` tensor is the last *shared* representation. From this point, the network branches into separate "heads" that perform distinct tasks.
 
--   **Policy Head**: This head predicts the best move to play. The `trunkfinal` tensor is passed into `self.policy_head` (line 1967). The `PolicyHead` module (defined at line 1421) uses its own small set of layers to produce policy logits for every possible move. The process is as follows:
+-   **Policy Head**: This head predicts the best move to play. The `trunkfinal` tensor is passed into `self.policy_head` (line 1967). It is important to note that in the source code, this tensor is named `out` when it is passed to the policy and value heads, but it is the same tensor that was just captured as `"trunkfinal"`. The `PolicyHead` module (defined at line 1421) uses its own small set of layers to produce policy logits for every possible move. The process is as follows:
 
-    1.  **Input**: The `trunkfinal` tensor serves as the direct input `x` to the `PolicyHead.forward` method (line 1475).
+    1.  **Input**: The `trunkfinal` tensor (passed as the `out` variable in the `Model.forward` method) serves as the direct input `x` to the `PolicyHead.forward` method (line 1475).
 
     2.  **Dual Branches**: The head immediately splits the computation into two parallel branches that both operate on the same `trunkfinal` input:
         -   **Spatial Branch ("p" branch)**: The tensor is passed through a 1x1 convolution (`self.conv1p`). This branch is responsible for generating location-specific move predictions on the board.
