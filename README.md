@@ -68,3 +68,12 @@ The project is designed to be highly reproducible. Dependencies are managed as f
 ### Model Compatibility
 
 **Warning**: This script is designed to work with modern KataGo models (e.g., `.bin.gz` or `.ckpt` format). The default model and the test model are known to be compatible. Using older, legacy model formats (such as `.txt.gz`) is **not supported** and will likely result in errors.
+
+### Development Environment
+
+This project is developed and tested on a Linux environment. The Python package versions are strictly pinned in `requirements.txt` and are known to work on this platform. Running on other operating systems (like macOS) may result in dependency installation issues (e.g., for `torch`), as specific package versions may not be available for all platforms.
+
+-   **Tested Platform**: `Linux-6.12.54-linuxkit-aarch64-with-glibc2.36`
+-   **Python Version**: 3.10 (as defined by the virtual environment setup)
+
+There are no external system dependencies (like `ninja`) required to run this project, as it only uses the Python components of its submodules.
