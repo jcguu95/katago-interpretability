@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.0 - 2026-02-08
+
+- **release**: Version 0.10.0 marks a significant milestone. The project now provides a complete, end-to-end toolkit for training Sparse Autoencoders on KataGo's internal activations and includes robust tools for data verification and feature interpretation. The core components are stable and ready for large-scale data collection and analysis.
+
 ## 0.9.14 - 2026-02-08
 
 - **docs**: Renamed the project to "KataGo Interpretability" to better reflect its purpose and updated documentation accordingly.
