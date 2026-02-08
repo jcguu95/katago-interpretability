@@ -92,7 +92,7 @@ SAE_EPOCHS := 2
 SAE_BATCH_SIZE := 32
 SAE_LR := 1e-4
 SAE_SPARSITY_COEFF := 1e-3
-SAE_DICT_SIZE_FACTOR := 16
+SAE_DICT_SIZE_FACTOR := 8
 
 # Target to run the full data generation and processing pipeline.
 data-pipeline: $(SAE_MODEL_FILE)

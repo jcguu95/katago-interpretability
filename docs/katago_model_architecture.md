@@ -62,3 +62,19 @@ The `trunkfinal` tensor is the last *shared* representation. From this point, th
     4.  **Final Layers**: This combined tensor goes through a final normalization (`self.bias2`), activation (`self.act2`), and a final 1x1 convolution (`self.conv2p`) to produce the final logits for every possible move on the board. The logits for passing (calculated in the "g" branch) are then concatenated to these spatial logits to form the complete policy output.
 
 -   **Value Head**: This head predicts the outcome of the game (win/loss probability, expected score, territory ownership, etc.). The *same* `trunkfinal` tensor is also passed into `self.value_head` (line 1975). The `ValueHead` module (defined at line 1531) has its own layers to produce these varied predictions.
+
+---
+
+### 5. Using `trunkfinal` for SAE Training
+
+The core of our interpretability work involves training a Sparse Autoencoder (SAE) on the `trunkfinal` activations. It is important to understand how this high-dimensional tensor is processed for this purpose.
+
+The `trunkfinal` tensor has a shape of `(C, H, W)` for a single board position, which is `(512, 19, 19)` for our model. Instead of treating this as a single, large `512 * 19 * 19 = 184,832`-dimensional vector, we make a simplifying architectural choice:
+
+**We treat each of the `19 * 19 = 361` spatial locations as an independent data sample.**
+
+For each sample, the feature vector is the set of `512` channel activations at that specific `(x, y)` board coordinate.
+
+This means we reformat the `(N, C, H, W)` batch of activations into a tensor of shape `(N * H * W, C)`, or `(N * 361, 512)`. The SAE is then trained on these `512`-dimensional vectors.
+
+This approach is based on the hypothesis that the channel features have a consistent meaning regardless of their spatial location, and it makes the problem of training an SAE far more tractable.

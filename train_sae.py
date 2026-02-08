@@ -20,7 +20,7 @@ def main():
     parser.add_argument("--sparsity-coeff", type=float, default=1e-3, help="Sparsity penalty coefficient.")
     parser.add_argument("--sparsity-type", type=str, default='l1', choices=['l1', 'lp'], help="Type of sparsity penalty.")
     parser.add_argument("--lp-norm-p", type=float, default=0.9, help="The p value for the Lp norm sparsity penalty, if used.")
-    parser.add_argument("--dict-size-factor", type=int, default=16, help="Factor to determine dictionary size relative to input features (activation dimension).")
+    parser.add_argument("--dict-size-factor", type=int, default=8, help="Factor to determine dictionary size relative to input features (activation dimension).")
     parser.add_argument("--validation-split", type=float, default=0.2, help="Fraction of data to use for validation.")
     parser.add_argument("--spike-threshold", type=float, default=1e-6, help="Threshold for considering a feature activation a 'spike'.")
     args = parser.parse_args()
@@ -42,13 +42,23 @@ def main():
     print(f"  - Shape: {activations.shape}")
     print(f"  - DType: {activations.dtype}")
 
-    # Reshape activations for SAE training
+    # --- Reshaping Activations for SAE Training ---
+    # The `trunkfinal` tensor for a single board position has the shape (C, H, W), 
+    # which is (512, 19, 19). You are correct that this is a high-dimensional object.
+    # For the SAE, we make a critical architectural choice: we treat each of the 19x19
+    # spatial locations as an independent data point. The "features" for each data point
+    # are the 512 channel values at that location.
+    #
+    # This transforms the problem from learning features on a 512x19x19 space to learning
+    # features on a 512-dimensional space, but with many more samples (N * 19 * 19).
+    # This is a standard approach for applying SAEs to convolutional activations.
     num_samples, C, H, W = activations.shape
+
     # The 'original space' is the channel dimension of the activations.
     # 'input_features' is a standard ML term for the dimensionality of the input vector.
     input_features = C
-    # Treat each spatial location (pixel) as a sample, and channels as features.
-    # From (N, C, H, W) to (N*H*W, C)
+    
+    # Reshape from (N, C, H, W) to (N*H*W, C)
     activations = activations.permute(0, 2, 3, 1).contiguous()
     activations = activations.view(-1, C)
     print(f"  - Reshaped for SAE: {activations.shape}")

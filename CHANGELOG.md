@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.3 - 2026-02-08
+
+- **docs**: Added a detailed explanation to `train_sae.py` and `docs/katago_model_architecture.md` about why the `512x19x19` activation tensor is treated as a batch of 512-dimensional vectors for SAE training.
+- **config**: Adjusted the default dictionary size factor to 8x (512 -> 4096) as a balanced starting point for hyperparameter tuning.
+
 ## 0.11.2 - 2026-02-08
 
 - **config**: Centralized SAE training hyperparameters in the `Makefile` for easier experimentation.
