@@ -81,7 +81,7 @@ The current SAE is a simple, single-hidden-layer neural network with the followi
 -   **Loss Function**: The model is trained to minimize a composite loss function:
     `Loss = Reconstruction_Loss + λ * Sparsity_Loss`
     -   **Reconstruction Loss**: This is the Mean Squared Error (MSE) between the decoder's output and the original input vector. It pushes the model to learn a faithful representation of the data.
-    -   **Sparsity Loss**: This is an L1 penalty (`torch.norm(..., 1)`) on the activations of the hidden layer (the encoded features). It encourages the model to represent each input with only a few active features, forcing each feature to be more specialized. The coefficient `λ` (`--l1-lambda`) controls the strength of this sparsity pressure.
+    -   **Sparsity Loss**: A penalty on the hidden layer activations to encourage sparsity. The type of penalty can be configured (e.g., L1 or Lp norm) using the `--sparsity-type` argument. The coefficient `λ` (`--sparsity-coeff`) controls the strength of this pressure.
 
 ### Alternative Training Approaches
 
