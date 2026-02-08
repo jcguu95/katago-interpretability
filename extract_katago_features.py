@@ -141,16 +141,10 @@ class KataGoFeatureExtractor:
         return model, config
 
     def extract_trunkfinal_output(self, state):
-        """Extracts the 'trunkfinal' layer from KataGo's neural network."""
-        extra_output_names = ["trunkfinal"]
-        outputs = state.get_model_outputs(
-            self.model, extra_output_names=extra_output_names
-        )
-        trunkfinal_output = outputs["trunkfinal"]
-        # Squeeze the batch dimension if it's 1
-        if trunkfinal_output.shape[0] == 1:
-            return trunkfinal_output[0]
-        return trunkfinal_output
+        """Extracts the 'trunkfinal' layer from KataGo's neural network for a single state."""
+        # Process a single state by wrapping it in a batch of size 1
+        batch_output = self.extract_trunkfinal_output_batch([state])
+        return batch_output[0]
 
     def extract_trunkfinal_output_batch(self, states):
         """Extracts 'trunkfinal' layer for a batch of game states."""
