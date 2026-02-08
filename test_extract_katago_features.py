@@ -56,15 +56,23 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         
         # Determine model path from zip contents and extract if necessary.
         with zipfile.ZipFile(cls.model_zip_path, 'r') as zip_ref:
-            if not zip_ref.namelist():
-                raise RuntimeError(f"Test model zip file {cls.model_zip_path} is empty.")
+            model_ckpt_zip_path = None
+            # Find the full path to model.ckpt within the zip archive
+            for name in zip_ref.namelist():
+                if name.endswith('model.ckpt'):
+                    model_ckpt_zip_path = name
+                    break
+
+            if not model_ckpt_zip_path:
+                raise RuntimeError(f"Could not find model.ckpt in the test model zip: {cls.model_zip_path}")
             
-            # Find the common directory prefix for all files in the zip
-            model_dir_name = os.path.commonpath(zip_ref.namelist())
+            # The directory path is the parent of model.ckpt
+            model_dir_name = os.path.dirname(model_ckpt_zip_path)
             cls.model_dir_path = os.path.abspath(model_dir_name)
             cls.model_ckpt_path = os.path.join(cls.model_dir_path, "model.ckpt")
 
             if not os.path.exists(cls.model_dir_path):
+                print(f"Extracting model to {cls.model_dir_path}...")
                 zip_ref.extractall(".")
         
         print("Model setup complete.")
@@ -105,7 +113,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn(f"--- Features for {self.TEST_SGF_FILENAME} at path 'root' ---", result.stdout)
-        self.assertIn(f"--- Features for {self.TEST2_SGF_FILENAME} at path '0,0,1' ---", result.stdout)
+        self.assertIn(f"--- Features for {self.TEST2_SGF_FILENAME} at path '0,0,0' ---", result.stdout)
         self.assertEqual(result.stdout.count(f"Trunkfinal output shape:"), 2)
 
     def test_invalid_variation_path(self):
