@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.7 - 2026-02-08
+
+- **docs**: Expanded the architecture document with a detailed explanation of how the `trunkfinal` tensor is processed within the Policy Head.
+
 ## 0.10.6 - 2026-02-08
 
 - **test**: Updated the expected hash in the numerical consistency test to match the current model's output.

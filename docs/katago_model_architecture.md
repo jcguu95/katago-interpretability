@@ -49,5 +49,16 @@ This tensor is a rich, high-dimensional representation of the board state, which
 
 The `trunkfinal` tensor is the last *shared* representation. From this point, the network branches into separate "heads" that perform distinct tasks.
 
--   **Policy Head**: This head predicts the best move to play. The `trunkfinal` tensor is passed into `self.policy_head` (line 1967). The `PolicyHead` module (defined at line 1421) uses its own small set of layers to produce policy logits for every possible move.
+-   **Policy Head**: This head predicts the best move to play. The `trunkfinal` tensor is passed into `self.policy_head` (line 1967). The `PolicyHead` module (defined at line 1421) uses its own small set of layers to produce policy logits for every possible move. The process is as follows:
+
+    1.  **Input**: The `trunkfinal` tensor serves as the direct input `x` to the `PolicyHead.forward` method (line 1475).
+
+    2.  **Dual Branches**: The head immediately splits the computation into two parallel branches that both operate on the same `trunkfinal` input:
+        -   **Spatial Branch ("p" branch)**: The tensor is passed through a 1x1 convolution (`self.conv1p`). This branch is responsible for generating location-specific move predictions on the board.
+        -   **Global Branch ("g" branch)**: The tensor is also passed through a *separate* 1x1 convolution (`self.conv1g`). The result is then globally pooled (`self.gpool`) to summarize the board state into a single feature vector. This vector is then processed by several linear layers (`self.linear_g`, `self.linear_pass`, etc.) to compute features related to passing and other non-spatial aspects of the policy.
+
+    3.  **Combination**: The output of the global branch (`outg`) is reshaped back into a spatial tensor (with dimensions `N, C, 1, 1`) and added to the output of the spatial branch (`outp`). This injects the global understanding of the position into the spatial predictions at every board location.
+
+    4.  **Final Layers**: This combined tensor goes through a final normalization (`self.bias2`), activation (`self.act2`), and a final 1x1 convolution (`self.conv2p`) to produce the final logits for every possible move on the board. The logits for passing (calculated in the "g" branch) are then concatenated to these spatial logits to form the complete policy output.
+
 -   **Value Head**: This head predicts the outcome of the game (win/loss probability, expected score, territory ownership, etc.). The *same* `trunkfinal` tensor is also passed into `self.value_head` (line 1975). The `ValueHead` module (defined at line 1531) has its own layers to produce these varied predictions.
