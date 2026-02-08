@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 - 2026-02-08
+
+- **feat**: Implemented a full training pipeline for the Sparse Autoencoder (SAE).
+  - `train_sae.py` now includes a training loop with MSE reconstruction loss and an L1 sparsity penalty.
+  - The script is configurable via command-line arguments for hyperparameters like epochs, learning rate, and batch size.
+  - The trained model is saved to a file (`activations/sae.pt` by default).
+- **chore**: Updated the `Makefile` to run the full data pipeline, including SAE training, with the `make data-pipeline` command. This provides a complete end-to-end test from data generation to a trained model.
+
 ## 0.5.5 - 2026-02-08
 
 - **chore**: Confirmed that all tests for the original feature extraction script (`make test-full`) are passing. The core functionality is stable before proceeding with SAE implementation.

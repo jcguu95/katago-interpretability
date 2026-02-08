@@ -71,10 +71,11 @@ ACTIVATIONS_DIR := activations
 # This is the default model downloaded by the scripts if not present.
 MODEL_ZIP := kata1-b28c512nbt-s12404017920-d5711392113.zip
 ACTIVATIONS_FILE := $(ACTIVATIONS_DIR)/activations.pt
+SAE_MODEL_FILE := $(ACTIVATIONS_DIR)/sae.pt
 
 # Target to run the full data generation and processing pipeline.
-data-pipeline: $(ACTIVATIONS_FILE)
-	@$(MAKE) train-sae
+data-pipeline: $(SAE_MODEL_FILE)
+	@echo "--- Data pipeline complete. Trained model at $(SAE_MODEL_FILE) ---"
 
 # Target to generate synthetic SGF data.
 generate-sgfs: $(SGF_DIR)
@@ -90,10 +91,18 @@ $(ACTIVATIONS_FILE): $(SGF_DIR)
 	@echo "--- Collecting activations ---"
 	@PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) collect_activations.py --sgf-dir $(SGF_DIR) --model-path $(MODEL_ZIP) --output-file $(ACTIVATIONS_FILE)
 
-# Target to run the SAE training script (currently a stub).
-train-sae: $(ACTIVATIONS_FILE)
-	@echo "--- Running SAE training stub ---"
-	@$(VENV_PYTHON) train_sae.py --activations-file $(ACTIVATIONS_FILE)
+# Target to run the SAE training script.
+train-sae: $(SAE_MODEL_FILE)
+
+$(SAE_MODEL_FILE): $(ACTIVATIONS_FILE)
+	@echo "--- Training SAE model ---"
+	@$(VENV_PYTHON) train_sae.py \
+		--activations-file $(ACTIVATIONS_FILE) \
+		--output-model-file $(SAE_MODEL_FILE) \
+		--epochs 2 \
+		--batch-size 32 \
+		--lr 1e-4 \
+		--l1-lambda 1e-3
 
 
 # Target to clean up the project directory.
