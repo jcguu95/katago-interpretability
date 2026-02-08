@@ -2,7 +2,17 @@
 
 ## Overview
 
-This script, `extract_katago_features.py`, demonstrates how to load a pre-trained KataGo neural network model and extract internal features from it for a given Go board position. Specifically, it extracts the output of the 'trunkfinal' layer, which represents the model's processed spatial features of the board state. This is the core functionality of this repository.
+This repository provides tools to work with the internal representations of the KataGo Go engine. The primary functionality is to extract feature tensors (activations) from a trained KataGo model for given board states.
+
+### Project Goal: Training a Sparse Autoencoder (SAE)
+
+The main goal of this project is to use these extracted features to train a Sparse Autoencoder (SAE). An SAE can learn a compressed, interpretable representation of KataGo's internal "thinking". By analyzing the features the SAE learns, we hope to gain insight into the concepts KataGo uses to evaluate board positions, making its decision-making process more transparent.
+
+The project is structured in two main phases:
+1.  **Data Collection**: Use the provided scripts to extract a large dataset of `trunkfinal` activations from many SGF game files.
+2.  **SAE Training**: Use the collected dataset to train an SAE model.
+
+This two-phase approach allows the computationally-intensive data collection to be done once, and then SAE training can be iterated upon quickly on a more powerful machine.
 
 ## Quick Start
 
