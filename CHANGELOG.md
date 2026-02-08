@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.4 - 2026-02-08
+
+- **fix**: Updated test model URL again to resolve a persistent 403 Forbidden error. The project now uses a `b28c512nbt` model and the tests have been updated to reflect its different output shape.
+
 ## 0.5.3 - 2026-02-08
 
 - **fix**: Improved the model zip extraction logic in `extract_katago_features.py` to be more robust. It now avoids creating nested directories and prevents re-extracting if the model file is already present.
