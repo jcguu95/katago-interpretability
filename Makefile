@@ -21,7 +21,7 @@ help:
 	@echo "  make clean               - Remove virtual environment and other generated files."
 	@echo ""
 	@echo "Testing commands:"
-	@echo "  make test-extractor      - Run the standalone feature extractor test suite."
+	@echo "  make test-extractor      - Run the standalone feature extractor test suite. (Fastest test)"
 	@echo "  make test-extractor-full - Run a clean test of the extractor, including model download."
 	@echo "  make test-pipeline-full  - Run a full clean test of the end-to-end SAE training pipeline."
 	@echo ""
