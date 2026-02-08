@@ -94,12 +94,17 @@ class KataGoFeatureExtractor:
 
     def _load_katago_model(self, model_path, pos_len):
         """Loads a PyTorch-native KataGo model (.ckpt), downloading and unzipping if necessary."""
-        # Use KATAGO_MODELS_DIR env var for download location, default to current dir
-        models_dir = os.environ.get('KATAGO_MODELS_DIR', '.')
-        if not os.path.exists(models_dir):
-            os.makedirs(models_dir, exist_ok=True)
+        is_url = model_path.startswith("http://") or model_path.startswith("https://")
 
-        local_path = os.path.join(models_dir, os.path.basename(model_path))
+        # Determine the target local path for the model/zip file
+        if is_url:
+            models_dir = os.environ.get('KATAGO_MODELS_DIR', '.')
+            if not os.path.exists(models_dir):
+                os.makedirs(models_dir, exist_ok=True)
+            local_path = os.path.join(models_dir, os.path.basename(model_path))
+        else:
+            # If a local path is provided, use it as is.
+            local_path = model_path
 
         model_filename = local_path
         if local_path.endswith(".zip"):
@@ -135,8 +140,10 @@ class KataGoFeatureExtractor:
         # Unzip if we have a zip file and the target model doesn't exist yet
         if local_path.endswith(".zip") and not os.path.exists(model_filename):
             print(f"Extracting {local_path}...")
+            # Extract into the same directory as the zip file.
+            extract_dir = os.path.dirname(local_path)
             with zipfile.ZipFile(local_path, 'r') as zip_ref:
-                zip_ref.extractall(".")
+                zip_ref.extractall(extract_dir)
             print("Extraction complete.")
 
         if not os.path.exists(model_filename):
