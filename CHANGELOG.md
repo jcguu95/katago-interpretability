@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0 - 2026-02-08
+
+- **perf**: The data collection and SAE training pipelines now automatically use a CUDA-enabled GPU if one is available, falling back to CPU otherwise. This addresses a major performance bottleneck for users with capable hardware and prepares the project for scaling up to larger datasets.
+- **docs**: Updated `README.md` to reflect the current state of the project, including the full data pipeline and its use for training an SAE.
+
 ## 0.6.7 - 2026-02-08
 
 - **fix**: The SAE training script (`train_sae.py`) no longer flattens the entire activation map into the feature dimension. It now correctly treats each spatial location as a sample and the channels as the feature vector, which resolves the out-of-memory `Killed` error during model initialization.

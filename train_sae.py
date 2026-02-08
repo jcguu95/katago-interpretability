@@ -30,6 +30,9 @@ def main():
     parser.add_argument("--dict-size-factor", type=int, default=4, help="Factor to determine dictionary size relative to input features.")
     args = parser.parse_args()
     
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"\nUsing device: {device}")
+
     print(f"Loading data from {args.activations_file}...")
     data = torch.load(args.activations_file)
     
@@ -59,6 +62,7 @@ def main():
     print(f"  - Input features: {input_features}")
     print(f"  - Dictionary features: {dict_features}")
     model = SparseAutoencoder(input_features, dict_features)
+    model.to(device)
     print(model)
 
     dataset = TensorDataset(activations)
@@ -73,7 +77,7 @@ def main():
     for epoch in range(args.epochs):
         epoch_loss = 0.0
         for batch in dataloader:
-            inputs = batch[0]
+            inputs = batch[0].to(device)
             optimizer.zero_grad()
             
             reconstructed, encoded = model(inputs)

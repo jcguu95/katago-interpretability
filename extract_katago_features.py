@@ -87,6 +87,8 @@ class KataGoFeatureExtractor:
 
     def __init__(self, model_path, pos_len):
         """Initializes the feature extractor and loads the model."""
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        print(f"Using device: {self.device}")
         self.model, config = self._load_katago_model(model_path, pos_len)
         # If config is not returned by load_model, try to get it from the model object
         if config is None and hasattr(self.model, 'config'):
@@ -149,7 +151,7 @@ class KataGoFeatureExtractor:
 
         print(f"Loading PyTorch model from '{model_filename}'")
         model, config, _ = load_model(
-            model_filename, use_swa=False, device="cpu", pos_len=pos_len
+            model_filename, use_swa=False, device=self.device, pos_len=pos_len
         )
         model.eval()  # Set the model to evaluation mode
         return model, config
@@ -188,12 +190,9 @@ class KataGoFeatureExtractor:
         extra_output_names = ["trunkfinal"]
         extra_outputs = ExtraOutputs(extra_output_names)
 
-        # Get device from model
-        device = next(self.model.parameters()).device
-
         # Convert to tensors
-        binary_input_data_tensor = torch.from_numpy(binary_input_data).to(device)
-        global_input_data_tensor = torch.from_numpy(global_input_data).to(device)
+        binary_input_data_tensor = torch.from_numpy(binary_input_data).to(self.device)
+        global_input_data_tensor = torch.from_numpy(global_input_data).to(self.device)
 
         with torch.no_grad():
             self.model.forward(

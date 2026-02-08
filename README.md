@@ -40,9 +40,24 @@ This project uses a `Makefile` to automate setup and testing. For details on the
       make test
       ```
 
-## Usage
+## Data Pipeline for SAE Training
 
-After setting up the environment with `make install`, you can run the main extraction script. You must first activate the virtual environment that was created.
+The primary workflow for this project is the data pipeline, which automates the process from generating sample data to training a preliminary SAE model.
+
+1.  **Run the Full Pipeline**: This single command will:
+    - Generate a small set of synthetic SGF files (if they don't exist).
+    - Download the necessary KataGo model (if it doesn't exist).
+    - Collect feature activations from the SGFs.
+    - Train a small sparse autoencoder on the activations.
+
+    ```bash
+    make data-pipeline
+    ```
+    At the end of the process, you will have a trained model file at `activations/sae.pt`.
+
+## Manual Usage
+
+If you need to extract features for specific SGF files manually, you can run the main extraction script. You must first activate the virtual environment.
 
 1.  **Activate the Environment**:
     ```bash
