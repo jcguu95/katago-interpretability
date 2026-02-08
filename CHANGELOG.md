@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1 - 2026-02-08
+
+- **fix**: Resolved a `SyntaxError` in the `Makefile`'s model extraction command. The Python one-liner was using a `with` statement, which is not valid in that context. It has been replaced with an equivalent `open`/`close` sequence.
+
 ## 0.9.0 - 2026-02-08
 
 - **refactor**: Reorganized the project to separate feature extraction from the SAE pipeline.

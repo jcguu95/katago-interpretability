@@ -108,7 +108,7 @@ $(MODEL_CKPT):
 	@echo "--- Extracting model from $(MODEL_ZIP) ---"
 	@$(VENV_PYTHON) -c "import zipfile, os; \
 	if not os.path.exists('$(MODEL_CKPT)'): \
-	    with zipfile.ZipFile('$(MODEL_ZIP)','r') as zip_ref: zip_ref.extractall('.')"
+	    zip_ref = zipfile.ZipFile('$(MODEL_ZIP)','r'); zip_ref.extractall('.'); zip_ref.close()"
 
 $(ACTIVATIONS_FILE): $(SGF_DIR) $(MODEL_CKPT)
 	@echo "--- Collecting activations ---"
