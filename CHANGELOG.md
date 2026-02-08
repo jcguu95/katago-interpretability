@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.5 - 2026-02-08
+
+- **docs**: Added comments to `sae_model.py` and `train_sae.py` to explicitly identify the encoder/decoder weights (W) and biases (b) and to pinpoint the exact line where these parameters are updated during training.
+
 ## 0.11.4 - 2026-02-08
 
 - **docs**: Documented the architectural limitation of the current SAE model: by treating each board location independently, it cannot learn features that represent spatial relationships (e.g., "groups" or "zones"). This is a deliberate trade-off for model simplicity.

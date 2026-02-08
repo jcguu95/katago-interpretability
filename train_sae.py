@@ -122,7 +122,11 @@ def main():
             
             loss = reconstruction_loss + args.sparsity_coeff * sparsity_loss
             
+            # Gradients are calculated for all trainable parameters (W_enc, b_enc, W_dec, b_dec).
             loss.backward()
+
+            # The optimizer updates the parameters based on the calculated gradients.
+            # This is the core step where the model "learns".
             optimizer.step()
             
             train_recon_loss += reconstruction_loss.item()
