@@ -129,27 +129,17 @@ class KataGoFeatureExtractor:
 
         model_filename = local_path
         if local_path.endswith(".zip"):
-            extract_dir = os.path.splitext(local_path)[0]
-            # Unzip if the extract directory doesn't exist
-            if not os.path.exists(extract_dir):
-                print(f"Extracting {local_path}...")
-                with zipfile.ZipFile(local_path, 'r') as zip_ref:
-                    zip_ref.extractall(extract_dir)
-                print("Extraction complete.")
+            with zipfile.ZipFile(local_path, 'r') as zip_ref:
+                model_file_in_zip = next((s for s in zip_ref.namelist() if s.endswith(".ckpt")), None)
+                if not model_file_in_zip:
+                    raise FileNotFoundError(f"Could not find a model file (.ckpt) in {local_path}")
 
-            # Search for the model file in the extracted directory
-            found_model_path = None
-            for root, dirs, files in os.walk(extract_dir):
-                for file in files:
-                    if file.endswith(".ckpt"):
-                        found_model_path = os.path.join(root, file)
-                        break
-                if found_model_path:
-                    break
-            
-            if not found_model_path:
-                raise FileNotFoundError(f"Could not find a model file (.ckpt) in the extracted contents of {local_path}")
-            model_filename = found_model_path
+                if not os.path.exists(model_file_in_zip):
+                    print(f"Extracting {local_path}...")
+                    # Extract to current directory, which is more robust
+                    zip_ref.extractall(".")
+                    print("Extraction complete.")
+            model_filename = model_file_in_zip
 
         if not os.path.exists(model_filename):
             raise FileNotFoundError(

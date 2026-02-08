@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3 - 2026-02-08
+
+- **fix**: Improved the model zip extraction logic in `extract_katago_features.py` to be more robust. It now avoids creating nested directories and prevents re-extracting if the model file is already present.
+
 ## 0.5.2 - 2026-02-08
 
 - **fix**: Updated test model URL to resolve a 403 Forbidden error during download. The project now uses a `b10c128` model for tests and as the default.
