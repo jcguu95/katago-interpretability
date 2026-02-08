@@ -222,21 +222,8 @@ def extract_features(args):
     Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
     """
     if args.sgf_node:
-        # Group all sgf-node pairs for a single batch run
         nodes_to_process = args.sgf_node
-
-        # Initialize the extractor once, assuming all SGFs have the same board size.
-        first_sgf_file = nodes_to_process[0][0]
-        try:
-            with open(first_sgf_file, "rb") as f:
-                game = sgf.Sgf_game.from_bytes(f.read())
-            pos_len = game.get_size()
-        except Exception as e:
-            print(f"Warning: Could not determine board size from {first_sgf_file}, defaulting to 19. Error: {e}", file=sys.stderr)
-            pos_len = 19
-        extractor = KataGoFeatureExtractor(args.model_path, pos_len)
-
-        print("--- Preparing batch from all specified SGF nodes ---")
+        
         states = []
         valid_nodes = []
         for sgf_filepath, path in nodes_to_process:
@@ -249,10 +236,13 @@ def extract_features(args):
 
         if not states:
             print("No valid game states to process.", file=sys.stderr)
-            # If nodes were requested but none could be processed, it's an error.
             if nodes_to_process:
                 sys.exit(1)
             return
+
+        # Determine pos_len from the first valid state
+        pos_len = states[0].board_size
+        extractor = KataGoFeatureExtractor(args.model_path, pos_len)
 
         print(f"--- Extracting features for {len(states)} positions in a single batch ---")
         trunkfinal_outputs = extractor.extract_trunkfinal_output_batch(states)

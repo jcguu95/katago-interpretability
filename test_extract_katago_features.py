@@ -35,8 +35,9 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         print(f"Setting up test suite: downloading model from {cls.TEST_MODEL_URL}")
         cls.model_zip_path = os.path.basename(cls.TEST_MODEL_URL)
         model_dir_name = os.path.splitext(cls.model_zip_path)[0]
-        cls.model_dir_path = model_dir_name
-        cls.model_ckpt_path = os.path.join(model_dir_name, "model.ckpt")
+        # Use absolute paths to be robust to subprocess working directory changes.
+        cls.model_dir_path = os.path.abspath(model_dir_name)
+        cls.model_ckpt_path = os.path.join(cls.model_dir_path, "model.ckpt")
 
         if not os.path.exists(cls.model_ckpt_path):
             # Use a more modern-looking User-Agent and other headers to avoid 403 Forbidden errors.
@@ -58,7 +59,8 @@ class TestFeatureExtractorCLI(unittest.TestCase):
                 raise RuntimeError(f"Failed to download test model: {e}") from e
 
             with zipfile.ZipFile(cls.model_zip_path, 'r') as zip_ref:
-                zip_ref.extractall(".")
+                # Extract into the parent directory of our target model directory
+                zip_ref.extractall(os.path.dirname(cls.model_dir_path))
         print("Model setup complete.")
 
     @classmethod
