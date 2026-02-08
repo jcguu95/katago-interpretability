@@ -1,0 +1,6 @@
+[submodule "katago"]
+	path = katago
+	url = https://github.com/lightvector/KataGo.git
+[submodule "sgfmill"]
+	path = sgfmill
+	url = https://github.com/mattheww/sgfmill.git
