@@ -2,10 +2,12 @@ import unittest
 import subprocess
 import os
 import sys
+import hashlib
 import urllib.request
 import zipfile
 import shutil
 import requests
+from feature_extraction.extract_katago_features import KataGoFeatureExtractor, initialize_game_state
 
 class TestFeatureExtractorCLI(unittest.TestCase):
     SCRIPT_PATH = 'feature_extraction/extract_katago_features.py'
@@ -20,8 +22,10 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     model_file_path = None
     TEST_SGF_CONTENT = "(;GM[1]SZ[19];B[aa];W[bb])"
     TEST2_SGF_CONTENT = "(;GM[1]SZ[19];B[dd];W[pp];B[dp])"
+    TEST_HANDICAP_SGF_CONTENT = "(;GM[1]SZ[19]HA[2];AB[pd][dp])"
     TEST_SGF_FILENAME = "test.sgf"
     TEST2_SGF_FILENAME = "test2.sgf"
+    TEST_HANDICAP_SGF_FILENAME = "test_handicap.sgf"
 
     @classmethod
     def setUpClass(cls):
@@ -30,6 +34,8 @@ class TestFeatureExtractorCLI(unittest.TestCase):
             f.write(cls.TEST_SGF_CONTENT)
         with open(cls.TEST2_SGF_FILENAME, "w") as f:
             f.write(cls.TEST2_SGF_CONTENT)
+        with open(cls.TEST_HANDICAP_SGF_FILENAME, "w") as f:
+            f.write(cls.TEST_HANDICAP_SGF_CONTENT)
 
         # Download and extract the test model once for all tests to ensure speed.
         print(f"Setting up test suite...")
@@ -88,7 +94,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         # Clean up the dummy SGF files
-        for filename in [cls.TEST_SGF_FILENAME, cls.TEST2_SGF_FILENAME]:
+        for filename in [cls.TEST_SGF_FILENAME, cls.TEST2_SGF_FILENAME, cls.TEST_HANDICAP_SGF_FILENAME]:
             if os.path.exists(filename):
                 os.remove(filename)
 
@@ -122,6 +128,14 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         self.assertIn(f"--- Features for {self.TEST2_SGF_FILENAME} at path '0,0,0' ---", result.stdout)
         self.assertEqual(result.stdout.count(f"Trunkfinal output shape:"), 2)
 
+    def test_handicap_stones(self):
+        """Test processing an SGF with handicap stones (AB property)."""
+        args = ['--sgf-node', self.TEST_HANDICAP_SGF_FILENAME, "", '--model-path', self.model_file_path]
+        result = self.run_script(args)
+        self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
+        self.assertIn(f"--- Features for {self.TEST_HANDICAP_SGF_FILENAME} at path 'root' ---", result.stdout)
+        self.assertIn(f"Trunkfinal output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
+
     def test_invalid_variation_path(self):
         """Test with an invalid variation path."""
         args = ['--model-path', self.model_file_path, '--sgf-node', self.TEST2_SGF_FILENAME, "0,1"]
@@ -143,6 +157,47 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn("--- Using initial demo game state ---", result.stdout)
         self.assertIn(f"Trunkfinal output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
+
+class TestFeatureExtractorConsistency(unittest.TestCase):
+    """Tests for the numerical consistency of the feature extractor output."""
+    extractor = None
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Set up the consistency test suite. This ensures the model is downloaded and
+        initializes an instance of the KataGoFeatureExtractor.
+        """
+        # Ensure the model is available, leveraging the CLI test's setup logic.
+        # This makes this test suite dependent on the other, but avoids duplicating
+        # the download/extract logic.
+        if not TestFeatureExtractorCLI.model_file_path or not os.path.exists(TestFeatureExtractorCLI.model_file_path):
+             TestFeatureExtractorCLI.setUpClass()
+        
+        # The demo game state is always 19x19.
+        cls.extractor = KataGoFeatureExtractor(TestFeatureExtractorCLI.model_file_path, board_size=19)
+
+    def test_demo_state_consistency(self):
+        """Test that the feature output for the standard demo state is consistent."""
+        state = initialize_game_state()
+        trunkfinal_output = self.extractor.extract_trunkfinal_output(state)
+
+        # A sha256 hash of the output tensor's raw bytes.
+        # This will detect any changes to the numerical output.
+        output_hash = hashlib.sha256(trunkfinal_output.tobytes()).hexdigest()
+
+        # NOTE: This hash is for the specific test model (kata1-b28c512nbt) and the
+        # initial demo game state. If the model or the state generation logic changes,
+        # this hash must be updated. To get the new hash, run the test and copy the
+        # value from the failure message.
+        expected_hash = "PASTE_THE_CORRECT_HASH_HERE"
+
+        self.assertEqual(
+            output_hash,
+            expected_hash,
+            f"Output hash {output_hash} does not match expected hash. If this change is intentional, update the expected hash in the test."
+        )
+
 
 if __name__ == '__main__':
     unittest.main()
