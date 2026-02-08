@@ -47,7 +47,7 @@ def process_sgf_file(sgf_path):
     yield state
 
     # Follow the main variation
-    while node.has_children():
+    while node:
         node = node[0]
         if node.has_property('B'):
             color, point = "B", node.get('B')

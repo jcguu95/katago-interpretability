@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2 - 2026-02-08
+
+- **fix**: Fixed a crash in `collect_activations.py` caused by an incorrect API call to the `sgfmill` library. The script now correctly checks for child nodes when traversing SGF game trees, resolving an `AttributeError`.
+
 ## 0.6.1 - 2026-02-08
 
 - **fix**: The `data-pipeline` now automatically downloads the required KataGo model if it is not found locally, preventing errors when run in a clean environment. The `clean` target no longer removes the downloaded model zip, only the extracted files.
