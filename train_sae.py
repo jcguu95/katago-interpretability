@@ -5,6 +5,7 @@ import json
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import os
+from tqdm import tqdm
 
 
 class SparseAutoencoder(nn.Module):
@@ -76,7 +77,8 @@ def main():
 
     for epoch in range(args.epochs):
         epoch_loss = 0.0
-        for batch in dataloader:
+        progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{args.epochs}", unit="batch")
+        for batch in progress_bar:
             inputs = batch[0].to(device)
             optimizer.zero_grad()
             
@@ -91,8 +93,10 @@ def main():
             optimizer.step()
             
             epoch_loss += loss.item()
+            progress_bar.set_postfix(loss=f"{loss.item():.6f}")
             
-        print(f"Epoch {epoch+1}/{args.epochs}, Loss: {epoch_loss/len(dataloader):.6f}")
+        avg_loss = epoch_loss / len(dataloader)
+        print(f"Epoch {epoch + 1}/{args.epochs} - Average Loss: {avg_loss:.6f}")
 
     print("\n--- Training complete ---")
 

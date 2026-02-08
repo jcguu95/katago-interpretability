@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 - 2026-02-08
+
+- **feat**: Added `visualize_sae.py`, a new script to analyze a trained SAE model. It loads the model and activations, and reports reconstruction error and feature sparsity for a random sample.
+- **feat**: The SAE training script (`train_sae.py`) now displays a `tqdm` progress bar during training, showing an ETA and the current loss per batch.
+- **chore**: Added `make visualize-sae` target to the `Makefile` and updated the `README.md` with instructions.
+- **deps**: Added `tqdm` to `requirements.txt`.
+
 ## 0.7.0 - 2026-02-08
 
 - **perf**: The data collection and SAE training pipelines now automatically use a CUDA-enabled GPU if one is available, falling back to CPU otherwise. This addresses a major performance bottleneck for users with capable hardware and prepares the project for scaling up to larger datasets.

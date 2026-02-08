@@ -55,6 +55,21 @@ The primary workflow for this project is the data pipeline, which automates the 
     ```
     At the end of the process, you will have a trained model file at `activations/sae.pt`.
 
+## Visualizing SAE Features
+
+After training an SAE model with `make data-pipeline`, you can run a basic analysis script to inspect its behavior on a single, random activation vector from the dataset.
+
+```bash
+make visualize-sae
+```
+
+This will print:
+- The reconstruction error (MSE) for the sample.
+- The number of "active" features in the SAE's hidden layer.
+- The index and activation value of the most active features.
+
+This serves as a starting point for deeper analysis of what the SAE has learned.
+
 ## Manual Usage
 
 If you need to extract features for specific SGF files manually, you can run the main extraction script. You must first activate the virtual environment.

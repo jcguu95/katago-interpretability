@@ -26,7 +26,8 @@ help:
 	@echo "  make data-pipeline       - Run the full SGF generation and feature extraction pipeline."
 	@echo "  make generate-sgfs       - Generate synthetic SGF files."
 	@echo "  make collect-activations - Extract features from SGFs into an activations file."
-	@echo "  make train-sae           - Run the SAE trainer stub on the activations file."
+	@echo "  make train-sae           - Run the SAE trainer on the activations file."
+	@echo "  make visualize-sae       - Run analysis on a trained SAE model."
 
 # The main install target. It depends on a stamp file.
 install: $(INSTALL_STAMP)
@@ -64,7 +65,7 @@ test-full: clean install
 
 # --- Data Pipeline ---
 
-.PHONY: data-pipeline generate-sgfs collect-activations train-sae
+.PHONY: data-pipeline generate-sgfs collect-activations train-sae visualize-sae
 
 # Variables for the data pipeline
 SGF_DIR := generated_sgfs
@@ -118,6 +119,13 @@ $(SAE_MODEL_FILE): $(ACTIVATIONS_FILE)
 		--batch-size 32 \
 		--lr 1e-4 \
 		--l1-lambda 1e-3
+
+# Target to visualize the trained SAE model.
+visualize-sae: $(SAE_MODEL_FILE)
+	@echo "--- Visualizing SAE model features ---"
+	@$(VENV_PYTHON) visualize_sae.py \
+		--sae-model-file $(SAE_MODEL_FILE) \
+		--activations-file $(ACTIVATIONS_FILE)
 
 
 # Target to clean up the project directory.
