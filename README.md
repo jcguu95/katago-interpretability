@@ -67,6 +67,26 @@ This will print:
 
 This serves as a starting point for deeper analysis of what the SAE has learned.
 
+## Interpreting SAE Features
+
+While `visualize_sae.py` provides a quick check, the main goal is to understand what each feature has learned. The `find_max_activating_examples.py` script is the primary tool for this. For a given feature, it scans the entire dataset and finds the board positions that cause the highest activations.
+
+**Usage**:
+
+1.  First, ensure you have a trained SAE model (e.g., from `make data-pipeline`).
+2.  Run the script, providing the model, the activations file, and the feature index you want to investigate.
+
+```bash
+# Example: Find the top 10 examples for feature #123
+python find_max_activating_examples.py \
+  --sae-model-file activations/sae.pt \
+  --activations-file activations/activations.pt \
+  --feature-index 123 \
+  --top-k 10
+```
+
+The output will list the top examples, showing the activation value and linking back to the precise SGF file, move number, and board location (row, column) that produced the activation. This allows you to manually inspect the board states that a feature responds to, which is the core of the "human-in-the-loop" evaluation process.
+
 ## SAE Architecture and Evaluation
 
 This section details the current implementation of the Sparse Autoencoder (SAE) and provides guidance on its evaluation.

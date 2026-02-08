@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.10 - 2026-02-08
+
+- **feat**: Added `find_max_activating_examples.py`, a new script for feature interpretation that finds the game positions that most strongly activate a given SAE feature.
+- **feat**: `collect_activations.py` now saves a `source_map` to link activations back to their original SGF file and move number, and includes a `--limit` flag to process a subset of SGFs.
+
 ## 0.9.9 - 2026-02-08
 
 - **feat**: Extended SAE training with configurable sparsity penalties (L1, Lp norm) and saved all training hyperparameters with the model for improved reproducibility and analysis.

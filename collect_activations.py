@@ -77,6 +77,7 @@ def main():
     parser.add_argument("--sgf-dir", required=True, help="Directory containing SGF files.")
     parser.add_argument("--model-path", required=True, help="Path to the KataGo model file.")
     parser.add_argument("--output-file", default="activations/activations.pt", help="Path to save the collected activations.")
+    parser.add_argument("--limit", type=int, default=None, help="Limit the number of SGF files to process.")
     args = parser.parse_args()
 
     if not os.path.isdir(args.sgf_dir):
@@ -91,8 +92,13 @@ def main():
     print("Initialization complete.")
 
     all_activations = []
+    source_map = []
 
     sgf_files = sorted([os.path.join(args.sgf_dir, f) for f in os.listdir(args.sgf_dir) if f.endswith(".sgf")])
+
+    if args.limit:
+        print(f"\nLimiting to the first {args.limit} SGF files.")
+        sgf_files = sgf_files[:args.limit]
 
     print(f"\nFound {len(sgf_files)} SGF files to process.")
 
@@ -102,6 +108,11 @@ def main():
         states_to_process = list(process_sgf_file(sgf_path))
         if not states_to_process:
             continue
+
+        source_map.append({
+            "sgf_file": os.path.abspath(sgf_path),
+            "num_states": len(states_to_process)
+        })
 
         total_states += len(states_to_process)
         activations_batch = extractor.extract_trunkfinal_output_batch(states_to_process)
@@ -125,6 +136,7 @@ def main():
         "sgf_dir": os.path.abspath(args.sgf_dir),
         "num_activations": final_tensor_torch.shape[0],
         "activations_shape": list(final_tensor_torch.shape),
+        "source_map": source_map,
     }
 
     # Save the tensor and metadata
