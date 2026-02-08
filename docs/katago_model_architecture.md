@@ -84,3 +84,27 @@ This approach is based on the hypothesis that the channel features have a consis
 As noted, this approach discards all spatial relationships between different locations on the board. Go concepts like "a group of stones" or "a critical zone" are inherently spatial. The current SAE model cannot learn features that represent these multi-location concepts directly. Instead, it can only learn to identify features present at a single point, based on the 512-dimensional channel vector at that point.
 
 This is a deliberate simplification. The benefit is a much smaller, more tractable model. The limitation is that we may miss out on features that are defined by the spatial arrangement of activations across the board. Future work could explore more complex, spatially-aware architectures like convolutional autoencoders to capture these relationships.
+
+### 6. Policy Head Architecture and Implications for the SAE
+
+The structure of the `PolicyHead` directly answers some important questions about how the model works, and has significant implications for our SAE training strategy.
+
+**1. Does the policy head compute its output in "one blow"?**
+
+No. As detailed in the "Dual Branches" and "Final Layers" descriptions above (and in the comments in `model_pytorch.py`), the `PolicyHead` is a multi-step sub-network. After the initial branches, the combined tensor passes through a sequence of `Normalization -> Activation -> Convolution`, which acts as a hidden layer before the final output. It is not a simple linear mapping from `trunkfinal`.
+
+**2. Can the policy head judge a move's importance from only the local 512-dim vector?**
+
+No. This is a critical insight. The policy head's "Global Branch" uses global average pooling (`KataGPool`) to compute a feature vector that summarizes the **entire** `512x19x19` board state. This global summary is then added back to the "Spatial Branch" at every `(x, y)` location.
+
+This means the final evaluation for any single point is a function of **both**:
+-   The local 512-dimensional feature vector at that point.
+-   A global context vector that understands the state of the whole board.
+
+This confirms the intuition that global context (e.g., "is a large group in danger?") is essential for evaluating local moves. The network achieves this by explicitly combining a global summary with local features.
+
+**Implications for our SAE Assumption**
+
+This architecture validates the concern that treating each 512-dimensional vector independently is a significant simplification. Our current SAE is trained to find a sparse basis for the *local* feature vectors only. It has no access to the global context that the real `PolicyHead` uses.
+
+While this is a limitation, it is also a deliberate research choice. By starting with this simpler model, we can first try to understand the "translation-invariant" features that exist at individual points. Future work could build on this by designing an SAE architecture that also incorporates this kind of global context.

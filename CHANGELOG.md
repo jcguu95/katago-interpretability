@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.9 - 2026-02-08
+
+- **docs**: Deepened the analysis of KataGo's `PolicyHead`, documenting that it uses both local (per-point) and global (whole-board) information to evaluate moves. This clarifies the limitations of our current SAE, which only sees local features.
+
 ## 0.11.8 - 2026-02-08
 
 - **feat**: Overhauled `visualize_sae.py` to perform a global analysis of feature statistics across the entire dataset, replacing the previous single-vector analysis.
