@@ -38,8 +38,13 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         cls.model_ckpt_path = os.path.join(model_dir_name, "model.ckpt")
 
         if not os.path.exists(cls.model_ckpt_path):
-            # Use a more modern-looking User-Agent to avoid 403 Forbidden errors.
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+            # Use a more modern-looking User-Agent and other headers to avoid 403 Forbidden errors.
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Referer': 'https://katagotraining.org/'
+            }
             try:
                 response = requests.get(cls.TEST_MODEL_URL, headers=headers, stream=True)
                 response.raise_for_status()

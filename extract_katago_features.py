@@ -113,8 +113,13 @@ class KataGoFeatureExtractor:
         ):
             print(f"Model not found locally. Downloading from {model_path}...")
 
-            # Add User-Agent header to avoid 403 Forbidden error
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+            # Add more browser-like headers to avoid 403 Forbidden error
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Referer': 'https://katagotraining.org/'
+            }
             try:
                 response = requests.get(model_path, headers=headers, stream=True)
                 response.raise_for_status()  # Raise an exception for bad status codes
