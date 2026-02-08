@@ -84,6 +84,15 @@ def _load_model_from_text_file(model_filename, pos_len):
     with open(config_path, 'r') as f:
         config = json.load(f)
 
+    # Patch old model configs with defaults from newer versions
+    # to ensure compatibility with the current Model class.
+    config.setdefault("norm_kind", "fixup")
+    config.setdefault("bnorm_epsilon", 1e-4)
+    config.setdefault("bnorm_running_avg_momentum", 0.001)
+    config.setdefault("initial_conv_1x1", False)
+    config.setdefault("use_attention_pool", False)
+    config.setdefault("num_attention_pool_heads", 4)
+
     model = Model(config, pos_len)
     model.initialize()
     state_dict = model.state_dict()
