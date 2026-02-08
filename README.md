@@ -36,8 +36,8 @@ This project is containerized using Docker to ensure a completely reproducible e
 
 ## Testing
 
-The test suite can be run inside the container to verify its functionality against the controlled environment. Run this command from your host machine's terminal using the image you already built.
+The test suite can be run inside the container to verify its functionality against the controlled environment. This requires overriding the container's default entrypoint to run the test runner instead of the main script. Run this command from your host machine's terminal.
 
 ```bash
-docker run --rm katago-extractor python -m unittest test_extract_katago_features.py
+docker run --rm --entrypoint python katago-extractor -m unittest test_extract_katago_features.py
 ```
