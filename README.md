@@ -21,11 +21,11 @@ This project uses a `Makefile` to automate setup and testing. For details on the
     ```
 
 3.  **Run Tests**:
-    - To run tests for the first time, use `make test-full`. This will also download the required test model.
+    - **Full Test (run this first)**: `make test-full`. This cleans the environment, installs dependencies, downloads the test model, and runs all tests.
       ```bash
       make test-full
       ```
-    - For subsequent, faster test runs that skip the download, use `make test`.
+    - **Quick Test**: `make test`. This runs the tests without re-downloading the model, assuming dependencies are already installed. It's much faster for repeated testing.
       ```bash
       make test
       ```
