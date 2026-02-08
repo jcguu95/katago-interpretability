@@ -150,7 +150,7 @@ class KataGoFeatureExtractor:
 
         print(f"Loading PyTorch model from '{model_filename}'")
         model, config, _ = load_model(
-            model_filename, use_swa=False, device=self.device, board_size=board_size
+            model_filename, use_swa=False, device=self.device, pos_len=board_size
         )
         model.eval()  # Set the model to evaluation mode
         return model, config
