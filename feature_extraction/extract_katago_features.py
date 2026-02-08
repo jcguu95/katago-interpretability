@@ -162,8 +162,13 @@ class KataGoFeatureExtractor:
         return model, config
 
     def extract_trunkfinal_output(self, state):
-        """Extracts the 'trunkfinal' layer from KataGo's neural network for a single state."""
-        # Process a single state by wrapping it in a batch of size 1
+        """
+        Extracts the 'trunkfinal' layer for a single state.
+        
+        This is a convenience wrapper around `extract_trunkfinal_output_batch`. It processes a single
+        state by wrapping it in a list to create a batch of size 1. True batch processing
+        is used when multiple `--sgf-node` arguments are passed to the script.
+        """
         batch_output = self.extract_trunkfinal_output_batch([state])
         return batch_output[0]
 

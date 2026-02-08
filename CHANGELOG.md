@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.5 - 2026-02-08
+
+- **docs**: Clarified the purpose of `extract_trunkfinal_output` as a single-state convenience wrapper around the batch processing method.
+
 ## 0.10.4 - 2026-02-08
 
 - **docs**: Updated `docs/katago_model_architecture.md` to include the shape of the `trunkfinal` tensor.
