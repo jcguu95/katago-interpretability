@@ -18,3 +18,7 @@ test2.sgf
 # User data directories
 my_sgfs/
 katago_models/
+
+# Generated data for SAE training
+generated_sgfs/
+activations/
