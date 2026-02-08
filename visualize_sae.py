@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import random
 import sys
+import json
 
 from sae_model import SparseAutoencoder
 
@@ -29,21 +30,28 @@ def main():
     print(f"  - Reshaped for SAE: {activations.shape}")
 
     # --- Load SAE Model ---
-    # Infer dictionary size from the model file's state dict
-    state_dict = torch.load(args.sae_model_file, map_location=device)
-    input_features_from_model = state_dict['encoder.weight'].shape[1]
-    dict_features = state_dict['encoder.weight'].shape[0]
-    
+    print(f"\nLoading SAE model from {args.sae_model_file}...")
+    checkpoint = torch.load(args.sae_model_file, map_location=device)
+
+    hyperparameters = checkpoint['hyperparameters']
+    state_dict = checkpoint['model_state_dict']
+
+    input_features_from_model = hyperparameters['input_features']
+    dict_features = hyperparameters['dict_features']
+
     if input_features_from_model != input_features:
         print(f"Error: Model's input features ({input_features_from_model}) do not match activations' features ({input_features}).", file=sys.stderr)
         return
         
-    print(f"\nLoading SAE model from {args.sae_model_file}...")
     model = SparseAutoencoder(input_features, dict_features)
     model.load_state_dict(state_dict)
     model.to(device)
     model.eval()
     print("  - Model loaded successfully.")
+
+    print("\n--- Model Hyperparameters ---")
+    # Pretty print the hyperparameters from the training run
+    print(json.dumps(hyperparameters, indent=2))
     print(model)
 
     # --- Analysis ---

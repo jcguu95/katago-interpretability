@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.9 - 2026-02-08
+
+- **feat**: Extended SAE training with configurable sparsity penalties (L1, Lp norm) and saved all training hyperparameters with the model for improved reproducibility and analysis.
+
 ## 0.9.8 - 2026-02-08
 
 - **docs**: Added a detailed section to `README.md` explaining the SAE architecture, alternative training approaches, and methods for evaluation and feature interpretation.

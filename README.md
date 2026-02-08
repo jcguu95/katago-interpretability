@@ -49,7 +49,7 @@ The primary workflow for this project is the data pipeline, which automates the 
     ```bash
     make data-pipeline
     ```
-    At the end of the process, you will have a trained model file at `activations/sae.pt`.
+    At the end of the process, you will have a trained model file at `activations/sae.pt`. This file contains both the model weights and the hyperparameters used for training.
 
 ## Visualizing SAE Features
 
@@ -60,6 +60,7 @@ make visualize-sae
 ```
 
 This will print:
+- The hyperparameters used to train the model.
 - The reconstruction error (MSE) for the sample.
 - The number of "active" features in the SAE's hidden layer.
 - The index and activation value of the most active features.

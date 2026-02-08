@@ -17,7 +17,9 @@ def main():
     parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs.")
     parser.add_argument("--batch-size", type=int, default=64, help="Batch size for training.")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate.")
-    parser.add_argument("--l1-lambda", type=float, default=1e-3, help="Sparsity penalty coefficient.")
+    parser.add_argument("--sparsity-coeff", type=float, default=1e-3, help="Sparsity penalty coefficient.")
+    parser.add_argument("--sparsity-type", type=str, default='l1', choices=['l1', 'lp'], help="Type of sparsity penalty.")
+    parser.add_argument("--lp-norm-p", type=float, default=0.9, help="The p value for the Lp norm sparsity penalty, if used.")
     parser.add_argument("--dict-size-factor", type=int, default=4, help="Factor to determine dictionary size relative to input features.")
     args = parser.parse_args()
     
@@ -63,7 +65,8 @@ def main():
     mse_loss = nn.MSELoss()
 
     print("\n--- Starting training ---")
-    print(f"Epochs: {args.epochs}, Batch size: {args.batch_size}, LR: {args.lr}, L1 lambda: {args.l1_lambda}")
+    print(f"Epochs: {args.epochs}, Batch size: {args.batch_size}, LR: {args.lr}")
+    print(f"Sparsity: type={args.sparsity_type}, coeff={args.sparsity_coeff}" + (f", p={args.lp_norm_p}" if args.sparsity_type == 'lp' else ""))
 
     for epoch in range(args.epochs):
         epoch_loss = 0.0
@@ -75,9 +78,15 @@ def main():
             reconstructed, encoded = model(inputs)
             
             reconstruction_loss = mse_loss(reconstructed, inputs)
-            l1_loss = torch.norm(encoded, 1, dim=1).mean()
+
+            if args.sparsity_type == 'l1':
+                sparsity_loss = torch.norm(encoded, 1, dim=1).mean()
+            elif args.sparsity_type == 'lp':
+                sparsity_loss = torch.norm(encoded, p=args.lp_norm_p, dim=1).mean()
+            else:
+                raise ValueError(f"Unknown sparsity type: {args.sparsity_type}")
             
-            loss = reconstruction_loss + args.l1_lambda * l1_loss
+            loss = reconstruction_loss + args.sparsity_coeff * sparsity_loss
             
             loss.backward()
             optimizer.step()
@@ -93,8 +102,15 @@ def main():
     # Ensure output directory exists
     os.makedirs(os.path.dirname(args.output_model_file), exist_ok=True)
 
-    torch.save(model.state_dict(), args.output_model_file)
-    print(f"Saved trained model to {args.output_model_file}")
+    hyperparameters = vars(args)
+    hyperparameters['input_features'] = input_features
+    hyperparameters['dict_features'] = dict_features
+
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'hyperparameters': hyperparameters
+    }, args.output_model_file)
+    print(f"Saved trained model and hyperparameters to {args.output_model_file}")
     
 
 if __name__ == "__main__":
