@@ -30,3 +30,7 @@ test2.sgf
 # User data directories
 my_sgfs/
 katago_models/
+
+# Submodule directories (cloned inside Dockerfile)
+katago/
+sgfmill/
