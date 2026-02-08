@@ -32,10 +32,17 @@ class TestFeatureExtractorCLI(unittest.TestCase):
             f.write(cls.TEST2_SGF_CONTENT)
 
         # Download and extract the test model once for all tests to ensure speed.
-        print(f"Setting up test suite: downloading model from {cls.TEST_MODEL_URL}")
+        print(f"Setting up test suite...")
         cls.model_zip_path = os.path.basename(cls.TEST_MODEL_URL)
 
         if not os.path.exists(cls.model_zip_path):
+            if os.environ.get('ALLOW_MODEL_DOWNLOAD') != '1':
+                raise FileNotFoundError(
+                    f"Test model '{cls.model_zip_path}' not found. "
+                    "Run 'make test-full' to download it."
+                )
+            
+            print(f"Test model not found. Downloading from {cls.TEST_MODEL_URL}")
             # Use a more modern-looking User-Agent and other headers to avoid 403 Forbidden errors.
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',

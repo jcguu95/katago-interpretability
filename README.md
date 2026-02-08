@@ -20,10 +20,15 @@ This project uses a `Makefile` to automate setup and testing. For details on the
     make install
     ```
 
-3.  **Run Tests**: This command runs the test suite. The first time it is run, it will automatically download a small KataGo model required for testing.
-    ```bash
-    make test
-    ```
+3.  **Run Tests**:
+    - To run tests for the first time, use `make test-full`. This will also download the required test model.
+      ```bash
+      make test-full
+      ```
+    - For subsequent, faster test runs that skip the download, use `make test`.
+      ```bash
+      make test
+      ```
 
 ## Usage
 
@@ -52,10 +57,14 @@ After setting up the environment with `make install`, you can run the main extra
     ```
     *Note: The first time you run this script, it will download a default KataGo model, which may take some time.*
 
-## Reproducibility
+## Reproducibility and Compatibility
 
 The project is designed to be highly reproducible. Dependencies are managed as follows:
 
 -   **Python Packages**: All Python dependencies (e.g., `torch`, `numpy`) are pinned to specific versions in `requirements.txt`.
 -   **KataGo and sgfmill**: The exact versions of the KataGo and `sgfmill` source code are pinned using `git submodules`, which lock them to a specific commit hash.
--   **Test Model**: The small KataGo model used for testing is downloaded automatically from a static URL by the test suite, ensuring a consistent testing environment.
+-   **Test Model**: The small KataGo model used for testing is downloaded automatically by running `make test-full`.
+
+### Model Compatibility
+
+**Warning**: This script is designed to work with modern KataGo models (e.g., `.bin.gz` or `.ckpt` format). The default model and the test model are known to be compatible. Using older, legacy model formats (such as `.txt.gz`) is **not supported** and will likely result in errors.

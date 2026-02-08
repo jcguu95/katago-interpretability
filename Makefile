@@ -46,13 +46,15 @@ reinstall:
 	@rm -f $(INSTALL_STAMP)
 	@$(MAKE) install
 
-# Target to run tests. This will automatically set up the environment first if needed.
+# Target to run tests. Assumes model is already downloaded.
 test: install
 	@echo "Running tests..."
 	@PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
 
-# Target for a full, clean test run.
-test-full: clean test
+# Target for a full, clean test run that downloads the model.
+test-full: clean install
+	@echo "Running full tests (including model download)..."
+	@ALLOW_MODEL_DOWNLOAD=1 PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
 
 # Target to clean up the project directory.
 clean:

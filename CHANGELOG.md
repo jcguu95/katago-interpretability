@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 - 2026-02-08
+
+- **refactor**: Replaced the Docker-based setup with a more secure and lightweight `venv` and `git submodule` approach.
+- **feat**: Added a `Makefile` to automate installation (`make install`), quick testing (`make test`), and clean testing with model download (`make test-full`).
+- **fix**: Resolved all model compatibility issues by removing support for legacy formats (`.txt.gz`) and updating the test suite to use a modern, compatible KataGo model. The test suite now passes reliably.
+
 ## 0.2.1 - 2026-02-07
 
 - **fix**: The script now exits with a non-zero status code if all specified SGF nodes fail to process, making error handling more robust for scripting.
