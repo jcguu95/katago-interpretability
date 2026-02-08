@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.4 - 2026-02-08
+
+- **fix**: Made the model download process more robust by using a temporary file. The final model archive is only moved into place after the download is complete, preventing corruption from interrupted downloads.
+
 ## 0.6.3 - 2026-02-08
 
 - **fix**: Corrected a dependency in the `Makefile` that caused the KataGo model to be re-downloaded on every run of `make data-pipeline` instead of only when missing.
