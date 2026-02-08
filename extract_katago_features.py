@@ -92,6 +92,12 @@ def _load_model_from_text_file(model_filename, pos_len):
     config.setdefault("initial_conv_1x1", False)
     config.setdefault("use_attention_pool", False)
     config.setdefault("num_attention_pool_heads", 4)
+    config.setdefault("p1_num_channels", 32)
+    config.setdefault("g1_num_channels", 32)
+    config.setdefault("v1_num_channels", 32)
+    config.setdefault("sbv2_num_channels", 48)
+    config.setdefault("num_scorebeliefs", 4)
+    config.setdefault("v2_size", 64)
 
     model = Model(config, pos_len)
     model.initialize()
