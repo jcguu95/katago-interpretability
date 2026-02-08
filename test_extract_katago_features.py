@@ -34,12 +34,8 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         # Download and extract the test model once for all tests to ensure speed.
         print(f"Setting up test suite: downloading model from {cls.TEST_MODEL_URL}")
         cls.model_zip_path = os.path.basename(cls.TEST_MODEL_URL)
-        model_dir_name = os.path.splitext(cls.model_zip_path)[0]
-        # Use absolute paths to be robust to subprocess working directory changes.
-        cls.model_dir_path = os.path.abspath(model_dir_name)
-        cls.model_ckpt_path = os.path.join(cls.model_dir_path, "model.ckpt")
 
-        if not os.path.exists(cls.model_ckpt_path):
+        if not os.path.exists(cls.model_zip_path):
             # Use a more modern-looking User-Agent and other headers to avoid 403 Forbidden errors.
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -57,10 +53,20 @@ class TestFeatureExtractorCLI(unittest.TestCase):
                 # In a test setup, we want to fail fast and clearly.
                 cls.tearDownClass() # Clean up what we can
                 raise RuntimeError(f"Failed to download test model: {e}") from e
+        
+        # Determine model path from zip contents and extract if necessary.
+        with zipfile.ZipFile(cls.model_zip_path, 'r') as zip_ref:
+            if not zip_ref.namelist():
+                raise RuntimeError(f"Test model zip file {cls.model_zip_path} is empty.")
+            
+            # Find the common directory prefix for all files in the zip
+            model_dir_name = os.path.commonpath(zip_ref.namelist())
+            cls.model_dir_path = os.path.abspath(model_dir_name)
+            cls.model_ckpt_path = os.path.join(cls.model_dir_path, "model.ckpt")
 
-            with zipfile.ZipFile(cls.model_zip_path, 'r') as zip_ref:
-                # Extract into the parent directory of our target model directory
-                zip_ref.extractall(os.path.dirname(cls.model_dir_path))
+            if not os.path.exists(cls.model_dir_path):
+                zip_ref.extractall(".")
+        
         print("Model setup complete.")
 
     @classmethod
@@ -94,7 +100,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         args = [
             '--model-path', self.model_ckpt_path,
             '--sgf-node', self.TEST_SGF_FILENAME, "",
-            '--sgf-node', self.TEST2_SGF_FILENAME, "0,0,1"
+            '--sgf-node', self.TEST2_SGF_FILENAME, "0,0,0"
         ]
         result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
