@@ -76,4 +76,4 @@ This project is developed and tested on a Linux environment. The Python package 
 -   **Tested Platform**: `Linux-6.12.54-linuxkit-aarch64-with-glibc2.36`
 -   **Python Version**: 3.10 (as defined by the virtual environment setup)
 
-There are no external system dependencies (like `ninja`) required to run this project, as it only uses the Python components of its submodules.
+There are no external system dependencies required to run this project on the tested Linux platform, as it only uses the Python components of its submodules. If you are attempting to run on an unsupported platform (such as macOS) and `pip` needs to build packages like `numpy` or `torch` from source, you may need to install additional build tools (e.g., `ninja`).
