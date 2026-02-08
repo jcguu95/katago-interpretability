@@ -8,7 +8,6 @@ PYTHON := python3
 # Define the virtual environment directory.
 VENV_DIR := venv
 VENV_PYTHON := $(VENV_DIR)/bin/python
-VENV_PIP := $(VENV_DIR)/bin/pip
 INSTALL_STAMP := $(VENV_DIR)/.installed
 
 # Default target when 'make' is run without arguments.
@@ -38,8 +37,8 @@ $(INSTALL_STAMP): $(VENV_DIR) requirements.txt
 	@echo "Initializing Git submodules..."
 	@git submodule update --init --recursive
 	@echo "Installing dependencies..."
-	$(VENV_PIP) install -r requirements.txt
-	$(VENV_PIP) install ./sgfmill
+	"$(VENV_PYTHON)" -m pip install -r requirements.txt
+	"$(VENV_PYTHON)" -m pip install ./sgfmill
 	@touch $(INSTALL_STAMP)
 
 # A target to force reinstallation.
