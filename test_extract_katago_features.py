@@ -6,20 +6,24 @@ import sys
 class TestFeatureExtractorCLI(unittest.TestCase):
     SCRIPT_PATH = 'extract_katago_features.py'
     TEST_SGF_CONTENT = "(;GM[1]SZ[19];B[aa];W[bb])"
+    TEST2_SGF_CONTENT = "(;GM[1]SZ[19];B[dd];W[pp];B[dp])"
     TEST_SGF_FILENAME = "test.sgf"
-    TEST2_SGF_FILENAME = "test2.sgf" # Assumes this file exists from user context
+    TEST2_SGF_FILENAME = "test2.sgf"
 
     @classmethod
     def setUpClass(cls):
-        # Create a dummy test SGF file for tests
+        # Create dummy test SGF files for tests
         with open(cls.TEST_SGF_FILENAME, "w") as f:
             f.write(cls.TEST_SGF_CONTENT)
+        with open(cls.TEST2_SGF_FILENAME, "w") as f:
+            f.write(cls.TEST2_SGF_CONTENT)
 
     @classmethod
     def tearDownClass(cls):
-        # Clean up the dummy SGF file
-        if os.path.exists(cls.TEST_SGF_FILENAME):
-            os.remove(cls.TEST_SGF_FILENAME)
+        # Clean up the dummy SGF files
+        for filename in [cls.TEST_SGF_FILENAME, cls.TEST2_SGF_FILENAME]:
+            if os.path.exists(filename):
+                os.remove(filename)
 
     def run_script(self, args):
         """Helper method to run the script with given arguments."""

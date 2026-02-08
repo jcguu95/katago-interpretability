@@ -1,6 +1,17 @@
+# Docker files
+Dockerfile
+.dockerignore
+
+# Git files
+.git/
+.gitignore
+.gitmodules
+
 .aider*
+
 # Python artifacts
 __pycache__/
+*.pyc
 venv/
 
 # Caches and local config
@@ -9,6 +20,7 @@ venv/
 
 # Downloaded KataGo models and archives
 *.zip
+*.ckpt
 kata1-*/
 
 # Test artifacts

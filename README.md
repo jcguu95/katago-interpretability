@@ -6,26 +6,39 @@ This script, `extract_katago_features.py`, demonstrates how to load a pre-traine
 
 ## How to Use
 
-1.  **Setup**: Ensure you have a Python environment and install the required dependencies:
+This project is containerized using Docker to ensure a completely reproducible environment.
+
+1.  **Prerequisites**: You must have Docker installed on your system.
+
+2.  **Build the Docker Image**: Navigate to the root of the repository and run the build command. This will assemble the environment, compile the KataGo engine, and install all dependencies.
     ```bash
-    pip install -r requirements.txt
+    docker build -t katago-extractor .
     ```
 
-2.  **Run**: Execute the script to extract features from SGF files. You can specify multiple nodes from different SGF files, and they will be processed together in an efficient batch.
+3.  **Run the Extractor**: Create local directories to store your SGF files and the downloaded KataGo models. Then, run the extractor inside the container, mounting these directories as volumes.
 
-    The `--sgf-node` argument takes two values: the SGF file path and a variation path. The variation path is a comma-separated list of indices that navigate the game tree (e.g., `"0,0,1"`). An empty path `""` refers to the root position.
-
-    **Example**
     ```bash
-    python extract_katago_features.py --sgf-node test.sgf "" --sgf-node test2.sgf "0,0,1"
+    # Create local directories for data and models
+    mkdir -p my_sgfs
+    mkdir -p katago_models
+
+    # Place your SGF files (e.g., test.sgf, test2.sgf) inside the 'my_sgfs' directory
+    # Now, run the extractor:
+    docker run --rm \
+      -v "$(pwd)/my_sgfs:/sgfs" \
+      -v "$(pwd)/katago_models:/models" \
+      katago-extractor \
+      --sgf-node /sgfs/test.sgf "" \
+      --sgf-node /sgfs/test2.sgf "0,0,1"
     ```
 
-    *On the first run, the script will automatically download and unzip a pre-trained KataGo model, which may take some time. Subsequent runs will use the local copy.*
+    *The first time you run this command, the script will download a KataGo model into your `katago_models` directory, which may take some time. Subsequent runs will be much faster as they will use the local copy.*
 
 ## Testing
 
-This repository includes a test suite to verify the script's functionality. To run the tests:
+The test suite can be run inside the container to verify its functionality against the controlled environment.
 
 ```bash
-python -m unittest test_extract_katago_features.py
+docker build -t katago-extractor-test .
+docker run --rm katago-extractor-test python -m unittest test_extract_katago_features.py
 ```

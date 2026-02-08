@@ -97,7 +97,12 @@ class KataGoFeatureExtractor:
 
     def _load_katago_model(self, model_path, pos_len):
         """Loads a PyTorch-native KataGo model (.ckpt), downloading and unzipping if necessary."""
-        local_path = os.path.basename(model_path)
+        # Use KATAGO_MODELS_DIR env var for download location, default to current dir
+        models_dir = os.environ.get('KATAGO_MODELS_DIR', '.')
+        if not os.path.exists(models_dir):
+            os.makedirs(models_dir, exist_ok=True)
+
+        local_path = os.path.join(models_dir, os.path.basename(model_path))
 
         model_filename = local_path
         if local_path.endswith(".zip"):
