@@ -30,6 +30,7 @@ RUN git clone https://github.com/mattheww/sgfmill.git sgfmill
 # Install sgfmill as a package.
 # For katago, add its python directory to the PYTHONPATH as it is not an installable package.
 RUN pip install --no-deps ./sgfmill
+ARG PYTHONPATH
 ENV PYTHONPATH="/app/katago/python${PYTHONPATH:+:${PYTHONPATH}}"
 
 # The C++ KataGo engine is not needed for this feature extraction script.
