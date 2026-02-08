@@ -78,3 +78,9 @@ For each sample, the feature vector is the set of `512` channel activations at t
 This means we reformat the `(N, C, H, W)` batch of activations into a tensor of shape `(N * H * W, C)`, or `(N * 361, 512)`. The SAE is then trained on these `512`-dimensional vectors.
 
 This approach is based on the hypothesis that the channel features have a consistent meaning regardless of their spatial location, and it makes the problem of training an SAE far more tractable.
+
+#### Limitations of This Approach
+
+As noted, this approach discards all spatial relationships between different locations on the board. Go concepts like "a group of stones" or "a critical zone" are inherently spatial. The current SAE model cannot learn features that represent these multi-location concepts directly. Instead, it can only learn to identify features present at a single point, based on the 512-dimensional channel vector at that point.
+
+This is a deliberate simplification. The benefit is a much smaller, more tractable model. The limitation is that we may miss out on features that are defined by the spatial arrangement of activations across the board. Future work could explore more complex, spatially-aware architectures like convolutional autoencoders to capture these relationships.

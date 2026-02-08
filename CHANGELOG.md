@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.4 - 2026-02-08
+
+- **docs**: Documented the architectural limitation of the current SAE model: by treating each board location independently, it cannot learn features that represent spatial relationships (e.g., "groups" or "zones"). This is a deliberate trade-off for model simplicity.
+
 ## 0.11.3 - 2026-02-08
 
 - **docs**: Added a detailed explanation to `train_sae.py` and `docs/katago_model_architecture.md` about why the `512x19x19` activation tensor is treated as a batch of 512-dimensional vectors for SAE training.

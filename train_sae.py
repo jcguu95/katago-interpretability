@@ -52,6 +52,9 @@ def main():
     # This transforms the problem from learning features on a 512x19x19 space to learning
     # features on a 512-dimensional space, but with many more samples (N * 19 * 19).
     # This is a standard approach for applying SAEs to convolutional activations.
+    # The key trade-off is that this approach discards all spatial information; the SAE
+    # cannot learn features that represent patterns across multiple board locations (e.g.
+    # the shape of a group of stones). It can only learn features that exist at a single point.
     num_samples, C, H, W = activations.shape
 
     # The 'original space' is the channel dimension of the activations.
