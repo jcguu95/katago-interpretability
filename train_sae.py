@@ -69,7 +69,8 @@ def main():
     print(f"Sparsity: type={args.sparsity_type}, coeff={args.sparsity_coeff}" + (f", p={args.lp_norm_p}" if args.sparsity_type == 'lp' else ""))
 
     for epoch in range(args.epochs):
-        epoch_loss = 0.0
+        epoch_recon_loss = 0.0
+        epoch_sparsity_loss = 0.0
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{args.epochs}", unit="batch")
         for batch in progress_bar:
             inputs = batch[0].to(device)
@@ -91,11 +92,13 @@ def main():
             loss.backward()
             optimizer.step()
             
-            epoch_loss += loss.item()
-            progress_bar.set_postfix(loss=f"{loss.item():.6f}")
+            epoch_recon_loss += reconstruction_loss.item()
+            epoch_sparsity_loss += sparsity_loss.item()
+            progress_bar.set_postfix(recon_loss=f"{reconstruction_loss.item():.6f}", sparsity_loss=f"{sparsity_loss.item():.6f}")
             
-        avg_loss = epoch_loss / len(dataloader)
-        print(f"Epoch {epoch + 1}/{args.epochs} - Average Loss: {avg_loss:.6f}")
+        avg_recon_loss = epoch_recon_loss / len(dataloader)
+        avg_sparsity_loss = epoch_sparsity_loss / len(dataloader)
+        print(f"Epoch {epoch + 1}/{args.epochs} - Avg Recon Loss: {avg_recon_loss:.6f} | Avg Sparsity Loss: {avg_sparsity_loss:.6f}")
 
     print("\n--- Training complete ---")
 

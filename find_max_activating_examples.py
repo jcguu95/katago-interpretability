@@ -3,6 +3,7 @@ import torch
 from tqdm import tqdm
 import json
 from sae_model import SparseAutoencoder
+from sgf_utils import get_state_at_move
 
 def find_source_from_index(index, source_map, H, W):
     """
@@ -90,10 +91,18 @@ def main():
                     top_k_activations.sort(key=lambda x: x[0], reverse=True)
 
     print("\n--- Top Activating Examples ---")
-    for value, index in top_k_activations:
+    for i, (value, index) in enumerate(top_k_activations):
         sgf_file, move_num, (row, col) = find_source_from_index(index, source_map, H, W)
+        print(f"\n--- Example #{i+1} ---")
         # Note: move_num is 0-indexed. 0 is the empty board, 1 is the first move.
         print(f"Activation: {value:.4f} | SGF: {sgf_file} | Move: {move_num} | Location: ({row}, {col})")
+
+        game_state = get_state_at_move(sgf_file, move_num)
+        if game_state:
+            print("Board State:")
+            game_state.board.show()
+        else:
+            print("Could not load board state.")
 
 
 if __name__ == "__main__":

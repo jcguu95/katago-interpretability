@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.12 - 2026-02-08
+
+- **feat**: Added visualization to `verify_activations.py`. The script can now plot a heatmap of any activation channel over the board to visually confirm feature extraction is working correctly.
+- **feat**: `find_max_activating_examples.py` now prints the board state for each top-activating example, making feature interpretation much easier.
+- **feat**: The training script (`train_sae.py`) now reports reconstruction and sparsity losses separately, providing better insight into the training dynamics.
+- **refactor**: SGF parsing logic has been moved to a shared `sgf_utils.py` file.
+
 ## 0.9.11 - 2026-02-08
 
 - **feat**: Added `verify_activations.py`, a new script for sanity-checking the feature extraction process on a single board position.
