@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import json
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, random_split
 import os
 from tqdm import tqdm
 
@@ -21,6 +21,7 @@ def main():
     parser.add_argument("--sparsity-type", type=str, default='l1', choices=['l1', 'lp'], help="Type of sparsity penalty.")
     parser.add_argument("--lp-norm-p", type=float, default=0.9, help="The p value for the Lp norm sparsity penalty, if used.")
     parser.add_argument("--dict-size-factor", type=int, default=4, help="Factor to determine dictionary size relative to input features.")
+    parser.add_argument("--validation-split", type=float, default=0.2, help="Fraction of data to use for validation.")
     args = parser.parse_args()
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -59,19 +60,31 @@ def main():
     print(model)
 
     dataset = TensorDataset(activations)
-    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=True)
+    
+    # Split data into training and validation sets
+    num_samples = len(dataset)
+    num_validation = int(num_samples * args.validation_split)
+    num_train = num_samples - num_validation
+    train_dataset, val_dataset = random_split(dataset, [num_train, num_validation])
+    
+    print(f"\nSplitting data into {len(train_dataset)} training and {len(val_dataset)} validation samples.")
+    
+    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
 
     optimizer = optim.Adam(model.parameters(), lr=args.lr)
     mse_loss = nn.MSELoss()
 
     print("\n--- Starting training ---")
-    print(f"Epochs: {args.epochs}, Batch size: {args.batch_size}, LR: {args.lr}")
+    print(f"Epochs: {args.epochs}, Batch size: {args.batch_size}, LR: {args.lr}, Validation split: {args.validation_split}")
     print(f"Sparsity: type={args.sparsity_type}, coeff={args.sparsity_coeff}" + (f", p={args.lp_norm_p}" if args.sparsity_type == 'lp' else ""))
 
     for epoch in range(args.epochs):
-        epoch_recon_loss = 0.0
-        epoch_sparsity_loss = 0.0
-        progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}/{args.epochs}", unit="batch")
+        # Training phase
+        model.train()
+        train_recon_loss = 0.0
+        train_sparsity_loss = 0.0
+        progress_bar = tqdm(train_dataloader, desc=f"Epoch {epoch + 1}/{args.epochs} [Train]", unit="batch")
         for batch in progress_bar:
             inputs = batch[0].to(device)
             optimizer.zero_grad()
@@ -92,13 +105,37 @@ def main():
             loss.backward()
             optimizer.step()
             
-            epoch_recon_loss += reconstruction_loss.item()
-            epoch_sparsity_loss += sparsity_loss.item()
+            train_recon_loss += reconstruction_loss.item()
+            train_sparsity_loss += sparsity_loss.item()
             progress_bar.set_postfix(recon_loss=f"{reconstruction_loss.item():.6f}", sparsity_loss=f"{sparsity_loss.item():.6f}")
             
-        avg_recon_loss = epoch_recon_loss / len(dataloader)
-        avg_sparsity_loss = epoch_sparsity_loss / len(dataloader)
-        print(f"Epoch {epoch + 1}/{args.epochs} - Avg Recon Loss: {avg_recon_loss:.6f} | Avg Sparsity Loss: {avg_sparsity_loss:.6f}")
+        avg_train_recon_loss = train_recon_loss / len(train_dataloader)
+        avg_train_sparsity_loss = train_sparsity_loss / len(train_dataloader)
+
+        # Validation phase
+        model.eval()
+        val_recon_loss = 0.0
+        val_sparsity_loss = 0.0
+        with torch.no_grad():
+            for batch in val_dataloader:
+                inputs = batch[0].to(device)
+                reconstructed, encoded = model(inputs)
+                reconstruction_loss = mse_loss(reconstructed, inputs)
+                
+                if args.sparsity_type == 'l1':
+                    sparsity_loss = torch.norm(encoded, 1, dim=1).mean()
+                elif args.sparsity_type == 'lp':
+                    sparsity_loss = torch.norm(encoded, p=args.lp_norm_p, dim=1).mean()
+
+                val_recon_loss += reconstruction_loss.item()
+                val_sparsity_loss += sparsity_loss.item()
+
+        avg_val_recon_loss = val_recon_loss / len(val_dataloader)
+        avg_val_sparsity_loss = val_sparsity_loss / len(val_dataloader)
+
+        print(f"Epoch {epoch + 1}/{args.epochs} - "
+              f"Train Recon: {avg_train_recon_loss:.6f}, Train Sparsity: {avg_train_sparsity_loss:.6f} | "
+              f"Val Recon: {avg_val_recon_loss:.6f}, Val Sparsity: {avg_val_sparsity_loss:.6f}")
 
     print("\n--- Training complete ---")
 
