@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.2 - 2026-02-08
+
+- **config**: Centralized SAE training hyperparameters in the `Makefile` for easier experimentation.
+- **feat**: Increased the default dictionary size factor from 4x to 16x (`512 -> 8192`) as a more suitable baseline for capturing the feature complexity of KataGo.
+
 ## 0.11.1 - 2026-02-08
 
 - **docs**: Added comments to `train_sae.py` to clarify the meaning of `input_features` and `dict_features` in mathematical and machine learning terms, improving the script's readability.

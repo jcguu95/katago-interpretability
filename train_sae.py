@@ -20,7 +20,7 @@ def main():
     parser.add_argument("--sparsity-coeff", type=float, default=1e-3, help="Sparsity penalty coefficient.")
     parser.add_argument("--sparsity-type", type=str, default='l1', choices=['l1', 'lp'], help="Type of sparsity penalty.")
     parser.add_argument("--lp-norm-p", type=float, default=0.9, help="The p value for the Lp norm sparsity penalty, if used.")
-    parser.add_argument("--dict-size-factor", type=int, default=4, help="Factor to determine dictionary size relative to input features (activation dimension).")
+    parser.add_argument("--dict-size-factor", type=int, default=16, help="Factor to determine dictionary size relative to input features (activation dimension).")
     parser.add_argument("--validation-split", type=float, default=0.2, help="Fraction of data to use for validation.")
     parser.add_argument("--spike-threshold", type=float, default=1e-6, help="Threshold for considering a feature activation a 'spike'.")
     args = parser.parse_args()

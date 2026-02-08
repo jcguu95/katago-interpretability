@@ -87,6 +87,13 @@ MODEL_CKPT := $(MODEL_DIR)/model.ckpt
 ACTIVATIONS_FILE := $(ACTIVATIONS_DIR)/activations.pt
 SAE_MODEL_FILE := $(ACTIVATIONS_DIR)/sae.pt
 
+# Hyperparameters for SAE training
+SAE_EPOCHS := 2
+SAE_BATCH_SIZE := 32
+SAE_LR := 1e-4
+SAE_SPARSITY_COEFF := 1e-3
+SAE_DICT_SIZE_FACTOR := 16
+
 # Target to run the full data generation and processing pipeline.
 data-pipeline: $(SAE_MODEL_FILE)
 	@echo "--- Data pipeline complete. Trained model at $(SAE_MODEL_FILE) ---"
@@ -127,10 +134,11 @@ $(SAE_MODEL_FILE): $(ACTIVATIONS_FILE)
 	@$(VENV_PYTHON) train_sae.py \
 		--activations-file $(ACTIVATIONS_FILE) \
 		--output-model-file $(SAE_MODEL_FILE) \
-		--epochs 2 \
-		--batch-size 32 \
-		--lr 1e-4 \
-		--sparsity-coeff 1e-3
+		--epochs $(SAE_EPOCHS) \
+		--batch-size $(SAE_BATCH_SIZE) \
+		--lr $(SAE_LR) \
+		--sparsity-coeff $(SAE_SPARSITY_COEFF) \
+		--dict-size-factor $(SAE_DICT_SIZE_FACTOR)
 
 # Target to visualize the trained SAE model.
 visualize-sae: $(SAE_MODEL_FILE)
