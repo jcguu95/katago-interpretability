@@ -23,17 +23,17 @@ help:
 	@echo "  make clean      - Remove virtual environment and other generated files."
 	@echo ""
 
-# Target to set up the virtual environment directory if it doesn't exist.
-$(VENV_DIR):
-	@echo "Creating Python virtual environment..."
-	$(PYTHON) -m venv $(VENV_DIR)
-
 # The main install target. It depends on a stamp file.
 install: $(INSTALL_STAMP)
 
-# The stamp file is created after installation. It depends on requirements.txt.
+# Rule to create the virtual environment if the python executable doesn't exist.
+$(VENV_PYTHON):
+	@echo "Creating Python virtual environment..."
+	$(PYTHON) -m venv $(VENV_DIR)
+
+# The stamp file is created after installation. It depends on the venv python and requirements.txt.
 # If requirements.txt changes, this rule will re-run.
-$(INSTALL_STAMP): $(VENV_DIR) requirements.txt
+$(INSTALL_STAMP): $(VENV_PYTHON) requirements.txt
 	@echo "Initializing Git submodules..."
 	@git submodule update --init --recursive
 	@echo "Installing dependencies..."
