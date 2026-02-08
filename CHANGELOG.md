@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.3 - 2026-02-08
+
+- **chore**: Added a `make retrain-sae` command to the `Makefile` to provide a convenient way to delete the existing model and re-run the training process.
+
 ## 0.8.2 - 2026-02-08
 
 - **fix**: Fixed a crash in `visualize_sae.py` where the script incorrectly inferred the model's input feature size, causing a dimension mismatch error when loading activations.

@@ -27,6 +27,7 @@ help:
 	@echo "  make generate-sgfs       - Generate synthetic SGF files."
 	@echo "  make collect-activations - Extract features from SGFs into an activations file."
 	@echo "  make train-sae           - Run the SAE trainer on the activations file."
+	@echo "  make retrain-sae         - Force re-training of the SAE model."
 	@echo "  make visualize-sae       - Run analysis on a trained SAE model."
 
 # The main install target. It depends on a stamp file.
@@ -65,7 +66,7 @@ test-full: clean install
 
 # --- Data Pipeline ---
 
-.PHONY: data-pipeline generate-sgfs collect-activations train-sae visualize-sae
+.PHONY: data-pipeline generate-sgfs collect-activations train-sae retrain-sae visualize-sae
 
 # Variables for the data pipeline
 SGF_DIR := generated_sgfs
@@ -109,6 +110,11 @@ $(ACTIVATIONS_FILE): $(SGF_DIR) $(MODEL_CKPT)
 
 # Target to run the SAE training script.
 train-sae: $(SAE_MODEL_FILE)
+
+# Target to force re-training of the SAE model.
+retrain-sae:
+	@rm -f $(SAE_MODEL_FILE)
+	@$(MAKE) train-sae
 
 $(SAE_MODEL_FILE): $(ACTIVATIONS_FILE)
 	@echo "--- Training SAE model ---"
