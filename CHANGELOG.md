@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.5 - 2026-02-08
+
+- **chore**: Confirmed that all tests for the original feature extraction script (`make test-full`) are passing. The core functionality is stable before proceeding with SAE implementation.
+
 ## 0.5.4 - 2026-02-08
 
 - **fix**: Updated test model URL again to resolve a persistent 403 Forbidden error. The project now uses a `b28c512nbt` model and the tests have been updated to reflect its different output shape.
