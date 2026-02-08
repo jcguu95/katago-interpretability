@@ -88,7 +88,7 @@ def main():
 
     # We assume all SGFs are for 19x19 boards.
     print("Initializing feature extractor...")
-    extractor = KataGoFeatureExtractor(args.model_path, pos_len=19)
+    extractor = KataGoFeatureExtractor(args.model_path, board_size=19)
     print("Initialization complete.")
 
     all_activations = []
