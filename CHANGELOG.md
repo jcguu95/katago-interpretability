@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.6 - 2026-02-08
+
+- **docs**: Clarified in `sae_model.py` that the ReLU activation function on the encoder output serves as the essential non-linearity for the autoencoder.
+
 ## 0.11.5 - 2026-02-08
 
 - **docs**: Added comments to `sae_model.py` and `train_sae.py` to explicitly identify the encoder/decoder weights (W) and biases (b) and to pinpoint the exact line where these parameters are updated during training.

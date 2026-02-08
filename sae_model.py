@@ -15,6 +15,10 @@ class SparseAutoencoder(nn.Module):
         self.decoder = nn.Linear(dict_features, input_features)
 
     def forward(self, x):
+        # The "nonlinear twist" is the ReLU activation function.
+        # Without this, the encoder and decoder would compose into a single, less expressive
+        # linear transformation. The ReLU allows the model to learn a sparse, non-linear
+        # feature representation.
         encoded = torch.relu(self.encoder(x))
         decoded = self.decoder(encoded)
         return decoded, encoded
