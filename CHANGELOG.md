@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.1 - 2026-02-08
+
+- **docs**: Added comments to `train_sae.py` to clarify the meaning of `input_features` and `dict_features` in mathematical and machine learning terms, improving the script's readability.
+
 ## 0.11.0 - 2026-02-08
 
 - **milestone**: Completed a detailed investigation of KataGo's feature extractor. The v0.10.x series has culminated in a solid understanding of the model's architecture and the `trunkfinal` activations.

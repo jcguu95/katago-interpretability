@@ -20,7 +20,7 @@ def main():
     parser.add_argument("--sparsity-coeff", type=float, default=1e-3, help="Sparsity penalty coefficient.")
     parser.add_argument("--sparsity-type", type=str, default='l1', choices=['l1', 'lp'], help="Type of sparsity penalty.")
     parser.add_argument("--lp-norm-p", type=float, default=0.9, help="The p value for the Lp norm sparsity penalty, if used.")
-    parser.add_argument("--dict-size-factor", type=int, default=4, help="Factor to determine dictionary size relative to input features.")
+    parser.add_argument("--dict-size-factor", type=int, default=4, help="Factor to determine dictionary size relative to input features (activation dimension).")
     parser.add_argument("--validation-split", type=float, default=0.2, help="Fraction of data to use for validation.")
     parser.add_argument("--spike-threshold", type=float, default=1e-6, help="Threshold for considering a feature activation a 'spike'.")
     args = parser.parse_args()
@@ -45,6 +45,7 @@ def main():
     # Reshape activations for SAE training
     num_samples, C, H, W = activations.shape
     # The 'original space' is the channel dimension of the activations.
+    # 'input_features' is a standard ML term for the dimensionality of the input vector.
     input_features = C
     # Treat each spatial location (pixel) as a sample, and channels as features.
     # From (N, C, H, W) to (N*H*W, C)
@@ -53,11 +54,13 @@ def main():
     print(f"  - Reshaped for SAE: {activations.shape}")
 
     # The 'large space' is the dictionary feature space, which is intentionally overcomplete.
+    # 'dict_features' refers to the size of the SAE's internal "dictionary" of features.
+    # From a math perspective, this is the dimension of the higher-dimensional space we are embedding into.
     dict_features = input_features * args.dict_size_factor
 
     print(f"\nInitializing SAE model...")
-    print(f"  - Original space dimension (input_features): {input_features}")
-    print(f"  - Large space dimension (dict_features): {dict_features}")
+    print(f"  - Activation dimension ('input_features'): {input_features}")
+    print(f"  - SAE hidden dimension ('dict_features'): {dict_features}")
     model = SparseAutoencoder(input_features, dict_features)
     model.to(device)
     print(model)
