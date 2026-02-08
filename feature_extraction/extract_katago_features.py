@@ -168,7 +168,9 @@ class KataGoFeatureExtractor:
 
         batch_size = len(states)
         board_size = self.features_obj.board_size
-        # Get shapes from the features object
+        
+        # 1. Create empty numpy arrays to hold the binary and global features for the batch.
+        # These will be filled with data from each game state.
         binary_input_data = np.zeros(shape=[batch_size] + self.features_obj.bin_input_shape, dtype=np.float32)
         global_input_data = np.zeros(shape=[batch_size] + self.features_obj.global_input_shape, dtype=np.float32)
 
@@ -178,7 +180,10 @@ class KataGoFeatureExtractor:
         binary_input_data_to_fill = np.transpose(binary_input_data, axes=(0, 2, 3, 1))
         binary_input_data_to_fill = binary_input_data_to_fill.reshape([batch_size, board_size * board_size, -1])
 
+        # 2. Loop through each game state and use KataGo's `fill_row_features` to populate the numpy arrays.
+        # This is where the game state is converted into the neural network's input format.
         for i, state in enumerate(states):
+            # `pla` is the player to move, `opp` is the opponent.
             pla = state.board.pla
             opp = Board.get_opp(pla)
             self.features_obj.fill_row_features(
@@ -186,13 +191,17 @@ class KataGoFeatureExtractor:
                 binary_input_data_to_fill, global_input_data, i
             )
 
+        # 3. Set up a hook to capture the 'trunkfinal' layer's output.
+        # This doesn't use the `state` directly, but it tells the model what to give us back
+        # when we run the forward pass with the state-derived feature tensors.
         extra_output_names = ["trunkfinal"]
         extra_outputs = ExtraOutputs(extra_output_names)
 
-        # Convert to tensors
+        # 4. Convert the numpy arrays to PyTorch tensors and move them to the correct device (CPU/GPU).
         binary_input_data_tensor = torch.from_numpy(binary_input_data).to(self.device)
         global_input_data_tensor = torch.from_numpy(global_input_data).to(self.device)
 
+        # 5. Run the forward pass. The `extra_outputs` object will capture the intermediate 'trunkfinal' tensor.
         with torch.no_grad():
             self.model.forward(
                 binary_input_data_tensor,
@@ -200,6 +209,7 @@ class KataGoFeatureExtractor:
                 extra_outputs=extra_outputs
             )
 
+        # 6. Retrieve the captured tensor from the `extra_outputs` object.
         trunkfinal_output_batch = extra_outputs.returned["trunkfinal"].cpu().numpy()
         return trunkfinal_output_batch
 
