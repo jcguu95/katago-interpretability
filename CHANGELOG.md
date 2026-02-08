@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.4 - 2026-02-08
+
+- **chore**: Added a `make test-all` command to run a full clean test of all project functionality, including the data pipeline, visualization, and original test suite.
+
 ## 0.8.3 - 2026-02-08
 
 - **chore**: Added a `make retrain-sae` command to the `Makefile` to provide a convenient way to delete the existing model and re-run the training process.

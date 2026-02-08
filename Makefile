@@ -20,6 +20,7 @@ help:
 	@echo "  make reinstall  - Force reinstallation of dependencies."
 	@echo "  make test       - Run the test suite."
 	@echo "  make test-full  - Run a clean test, removing venv and models first."
+	@echo "  make test-all   - Run a full clean test of all functionality."
 	@echo "  make clean      - Remove virtual environment and other generated files."
 	@echo ""
 	@echo "Data Pipeline commands:"
@@ -63,6 +64,12 @@ test-full: clean install
 	@echo "Running full tests (including model download)..."
 	@rm -f $(MODEL_ZIP)
 	@ALLOW_MODEL_DOWNLOAD=1 PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
+
+# Target for a full test of everything, including the data pipeline.
+.PHONY: test-all
+test-all: clean install data-pipeline visualize-sae test
+	@echo "--- All tests and pipeline steps completed successfully ---"
+
 
 # --- Data Pipeline ---
 
