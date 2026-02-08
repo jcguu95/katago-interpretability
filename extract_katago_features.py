@@ -3,6 +3,7 @@ import argparse
 import os
 import urllib.request
 import zipfile
+import requests
 
 from sgfmill import sgf
 from katago.game import gamestate
@@ -114,9 +115,15 @@ class KataGoFeatureExtractor:
 
             # Add User-Agent header to avoid 403 Forbidden error
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-            req = urllib.request.Request(model_path, headers=headers)
-            with urllib.request.urlopen(req) as response, open(local_path, 'wb') as out_file:
-                out_file.write(response.read())
+            try:
+                response = requests.get(model_path, headers=headers, stream=True)
+                response.raise_for_status()  # Raise an exception for bad status codes
+                with open(local_path, 'wb') as out_file:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        out_file.write(chunk)
+            except requests.exceptions.RequestException as e:
+                print(f"Failed to download model: {e}", file=sys.stderr)
+                sys.exit(1)
 
             print(f"Downloaded to {local_path}.")
 

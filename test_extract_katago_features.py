@@ -5,6 +5,7 @@ import sys
 import urllib.request
 import zipfile
 import shutil
+import requests
 
 class TestFeatureExtractorCLI(unittest.TestCase):
     SCRIPT_PATH = 'extract_katago_features.py'
@@ -39,9 +40,16 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         if not os.path.exists(cls.model_ckpt_path):
             # Use a more modern-looking User-Agent to avoid 403 Forbidden errors.
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-            req = urllib.request.Request(cls.TEST_MODEL_URL, headers=headers)
-            with urllib.request.urlopen(req) as response, open(cls.model_zip_path, 'wb') as out_file:
-                out_file.write(response.read())
+            try:
+                response = requests.get(cls.TEST_MODEL_URL, headers=headers, stream=True)
+                response.raise_for_status()
+                with open(cls.model_zip_path, 'wb') as out_file:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        out_file.write(chunk)
+            except requests.exceptions.RequestException as e:
+                # In a test setup, we want to fail fast and clearly.
+                cls.tearDownClass() # Clean up what we can
+                raise RuntimeError(f"Failed to download test model: {e}") from e
 
             with zipfile.ZipFile(cls.model_zip_path, 'r') as zip_ref:
                 zip_ref.extractall(".")
