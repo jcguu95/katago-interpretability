@@ -22,6 +22,11 @@ help:
 	@echo "  make test-full  - Run a clean test, removing venv and models first."
 	@echo "  make clean      - Remove virtual environment and other generated files."
 	@echo ""
+	@echo "Data Pipeline commands:"
+	@echo "  make data-pipeline       - Run the full SGF generation and feature extraction pipeline."
+	@echo "  make generate-sgfs       - Generate synthetic SGF files."
+	@echo "  make collect-activations - Extract features from SGFs into an activations file."
+	@echo "  make train-sae           - Run the SAE trainer stub on the activations file."
 
 # The main install target. It depends on a stamp file.
 install: $(INSTALL_STAMP)
@@ -56,12 +61,48 @@ test-full: clean install
 	@echo "Running full tests (including model download)..."
 	@ALLOW_MODEL_DOWNLOAD=1 PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
 
+# --- Data Pipeline ---
+
+.PHONY: data-pipeline generate-sgfs collect-activations train-sae
+
+# Variables for the data pipeline
+SGF_DIR := generated_sgfs
+ACTIVATIONS_DIR := activations
+# This is the default model downloaded by the scripts if not present.
+MODEL_ZIP := kata1-b28c512nbt-s12404017920-d5711392113.zip
+ACTIVATIONS_FILE := $(ACTIVATIONS_DIR)/activations.pt
+
+# Target to run the full data generation and processing pipeline.
+data-pipeline: $(ACTIVATIONS_FILE)
+	@$(MAKE) train-sae
+
+# Target to generate synthetic SGF data.
+generate-sgfs: $(SGF_DIR)
+
+$(SGF_DIR): install
+	@echo "--- Generating synthetic SGF data ---"
+	@PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) generate_sgfs.py --output-dir $(SGF_DIR)
+
+# Target to collect activations from the generated SGFs.
+collect-activations: $(ACTIVATIONS_FILE)
+
+$(ACTIVATIONS_FILE): $(SGF_DIR)
+	@echo "--- Collecting activations ---"
+	@PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) collect_activations.py --sgf-dir $(SGF_DIR) --model-path $(MODEL_ZIP) --output-file $(ACTIVATIONS_FILE)
+
+# Target to run the SAE training script (currently a stub).
+train-sae: $(ACTIVATIONS_FILE)
+	@echo "--- Running SAE training stub ---"
+	@$(VENV_PYTHON) train_sae.py --activations-file $(ACTIVATIONS_FILE)
+
+
 # Target to clean up the project directory.
 clean:
 	@echo "Cleaning up..."
 	rm -rf $(VENV_DIR)
 	rm -f test.sgf test2.sgf
 	rm -rf kata1-*
+	rm -rf $(SGF_DIR) $(ACTIVATIONS_DIR)
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	@echo "Cleaning submodules..."
 	@git submodule foreach --recursive git clean -fdx
