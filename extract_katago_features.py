@@ -86,6 +86,11 @@ def _load_model_from_text_file(model_filename, pos_len):
 
     # Patch old model configs with defaults from newer versions
     # to ensure compatibility with the current Model class.
+    # The 'gpool' block kind is legacy, modern configs use 'regulargpool'.
+    for block in config.get("block_kind", []):
+        if block[1] == "gpool":
+            block[1] = "regulargpool"
+
     config.setdefault("norm_kind", "fixup")
     config.setdefault("bnorm_epsilon", 1e-4)
     config.setdefault("bnorm_running_avg_momentum", 0.001)
