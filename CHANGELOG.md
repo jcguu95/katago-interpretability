@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.5 - 2026-02-08
+
+- **fix**: The `Makefile`'s data pipeline now checks for the extracted model before attempting to download the model archive. This prevents re-downloading the model if it has been unzipped but the archive is missing.
+
 ## 0.6.4 - 2026-02-08
 
 - **fix**: Made the model download process more robust by using a temporary file. The final model archive is only moved into place after the download is complete, preventing corruption from interrupted downloads.
