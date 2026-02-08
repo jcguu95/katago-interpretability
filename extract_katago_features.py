@@ -141,14 +141,14 @@ class KataGoFeatureExtractor:
             found_model_path = None
             for root, dirs, files in os.walk(extract_dir):
                 for file in files:
-                    if file.endswith((".ckpt", ".bin.gz", ".txt.gz")):
+                    if file.endswith(".ckpt"):
                         found_model_path = os.path.join(root, file)
                         break
                 if found_model_path:
                     break
             
             if not found_model_path:
-                raise FileNotFoundError(f"Could not find a model file (.ckpt, .bin.gz, or .txt.gz) in the extracted contents of {local_path}")
+                raise FileNotFoundError(f"Could not find a model file (.ckpt) in the extracted contents of {local_path}")
             model_filename = found_model_path
 
         if not os.path.exists(model_filename):
