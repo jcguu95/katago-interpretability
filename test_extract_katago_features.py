@@ -102,14 +102,14 @@ class TestFeatureExtractorCLI(unittest.TestCase):
 
     def test_invalid_variation_path(self):
         """Test with an invalid variation path."""
-        args = ['--sgf-node', self.TEST2_SGF_FILENAME, "0,1"]
+        args = ['--model-path', self.model_ckpt_path, '--sgf-node', self.TEST2_SGF_FILENAME, "0,1"]
         result = self.run_script(args)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Invalid variation path: branch index 1 is out of range", result.stderr)
 
     def test_missing_sgf_file(self):
         """Test with a non-existent SGF file."""
-        args = ['--sgf-node', 'non_existent_file.sgf', ""]
+        args = ['--model-path', self.model_ckpt_path, '--sgf-node', 'non_existent_file.sgf', ""]
         result = self.run_script(args)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SGF file not found: non_existent_file.sgf", result.stderr)
