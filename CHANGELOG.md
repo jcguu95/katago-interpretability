@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.11 - 2026-02-08
+
+- **feat**: Added `verify_activations.py`, a new script for sanity-checking the feature extraction process on a single board position.
+- **docs**: Added guidance on data collection strategy and pipeline verification to `README.md`.
+
 ## 0.9.10 - 2026-02-08
 
 - **feat**: Added `find_max_activating_examples.py`, a new script for feature interpretation that finds the game positions that most strongly activate a given SAE feature.

@@ -51,6 +51,31 @@ The primary workflow for this project is the data pipeline, which automates the 
     ```
     At the end of the process, you will have a trained model file at `activations/sae.pt`. This file contains both the model weights and the hyperparameters used for training.
 
+## Data Collection and Verification
+
+### Data Collection Strategy
+
+When collecting a large dataset of SGF files for training, the goal is to provide the SAE with a diverse set of high-quality, conceptually rich game positions. The following distribution is recommended as a starting point for a large dataset (~5000 games):
+
+-   **Professional Games (60-70%)**: The core of the dataset, providing examples of high-level strategy and tactics.
+-   **High-Dan Amateur Games (20-30%)**: High-quality games that add stylistic variety.
+-   **Mid-Dan Amateur Games (0-10%)**: A small portion to add further variety, but should be limited to avoid introducing too much noise from simple mistakes.
+
+### Verifying the Data Pipeline
+
+Before processing thousands of files, it is crucial to verify that the activation collection process is working as expected. The `verify_activations.py` script is a tool for this "sanity check." It extracts and summarizes the activations for a single board position from a single SGF file, allowing you to confirm that the pipeline is producing the correct data.
+
+**Usage**:
+```bash
+# Example: Inspect the board and activations at move 50 of a game.
+# The model path should point to the downloaded model.
+python verify_activations.py \
+  --sgf-file path/to/your/game.sgf \
+  --move-number 50 \
+  --model-path models/b10c128-20230103.ckpt
+```
+The script will print the board state and a summary of the extracted activation tensor (shape, mean, min, max, etc.). This allows you to build confidence in the data before running the full `collect_activations.py` script.
+
 ## Visualizing SAE Features
 
 After training an SAE model with `make data-pipeline`, you can run a basic analysis script to inspect its behavior on a single, random activation vector from the dataset.
