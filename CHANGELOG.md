@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3 - 2026-02-08
+
+- **fix**: Corrected a dependency in the `Makefile` that caused the KataGo model to be re-downloaded on every run of `make data-pipeline` instead of only when missing.
+
 ## 0.6.2 - 2026-02-08
 
 - **fix**: Fixed a crash in `collect_activations.py` caused by an incorrect API call to the `sgfmill` library. The script now correctly checks for child nodes when traversing SGF game trees, resolving an `AttributeError`.
