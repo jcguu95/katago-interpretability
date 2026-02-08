@@ -340,10 +340,15 @@ class KataGoFeatureExtractor:
                 "This script requires a KataGo model file (.ckpt, .bin.gz, or .txt.gz)."
             )
 
-        print(f"Loading PyTorch model from '{model_filename}'")
-        model, config, _ = load_model(
-            model_filename, use_swa=False, device="cpu", pos_len=pos_len
-        )
+        if model_filename.endswith(".txt.gz"):
+            print(f"Loading TEXT model from '{model_filename}'")
+            model, config = _load_model_from_text_file(model_filename, pos_len)
+        else:
+            print(f"Loading PyTorch model from '{model_filename}'")
+            model, config, _ = load_model(
+                model_filename, use_swa=False, device="cpu", pos_len=pos_len
+            )
+        
         model.eval()  # Set the model to evaluation mode
         return model, config
 
