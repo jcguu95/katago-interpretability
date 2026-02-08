@@ -22,6 +22,7 @@ def main():
     parser.add_argument("--lp-norm-p", type=float, default=0.9, help="The p value for the Lp norm sparsity penalty, if used.")
     parser.add_argument("--dict-size-factor", type=int, default=4, help="Factor to determine dictionary size relative to input features.")
     parser.add_argument("--validation-split", type=float, default=0.2, help="Fraction of data to use for validation.")
+    parser.add_argument("--spike-threshold", type=float, default=1e-6, help="Threshold for considering a feature activation a 'spike'.")
     args = parser.parse_args()
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -43,6 +44,7 @@ def main():
 
     # Reshape activations for SAE training
     num_samples, C, H, W = activations.shape
+    # The 'original space' is the channel dimension of the activations.
     input_features = C
     # Treat each spatial location (pixel) as a sample, and channels as features.
     # From (N, C, H, W) to (N*H*W, C)
@@ -50,11 +52,12 @@ def main():
     activations = activations.view(-1, C)
     print(f"  - Reshaped for SAE: {activations.shape}")
 
+    # The 'large space' is the dictionary feature space, which is intentionally overcomplete.
     dict_features = input_features * args.dict_size_factor
 
     print(f"\nInitializing SAE model...")
-    print(f"  - Input features: {input_features}")
-    print(f"  - Dictionary features: {dict_features}")
+    print(f"  - Original space dimension (input_features): {input_features}")
+    print(f"  - Large space dimension (dict_features): {dict_features}")
     model = SparseAutoencoder(input_features, dict_features)
     model.to(device)
     print(model)
@@ -84,6 +87,7 @@ def main():
         model.train()
         train_recon_loss = 0.0
         train_sparsity_loss = 0.0
+        train_avg_spikes = 0.0
         progress_bar = tqdm(train_dataloader, desc=f"Epoch {epoch + 1}/{args.epochs} [Train]", unit="batch")
         for batch in progress_bar:
             inputs = batch[0].to(device)
@@ -107,15 +111,25 @@ def main():
             
             train_recon_loss += reconstruction_loss.item()
             train_sparsity_loss += sparsity_loss.item()
-            progress_bar.set_postfix(recon_loss=f"{reconstruction_loss.item():.6f}", sparsity_loss=f"{sparsity_loss.item():.6f}")
+            
+            # The 'expected count of spikes' is the average number of features that are non-zero.
+            # We calculate this by counting features with an absolute value above a small threshold.
+            num_spikes = (encoded.abs() > args.spike_threshold).float().sum(dim=1)
+            train_avg_spikes += num_spikes.mean().item()
+
+            progress_bar.set_postfix(recon_loss=f"{reconstruction_loss.item():.6f}",
+                                     sparsity_loss=f"{sparsity_loss.item():.6f}",
+                                     avg_spikes=f"{num_spikes.mean().item():.2f}")
             
         avg_train_recon_loss = train_recon_loss / len(train_dataloader)
         avg_train_sparsity_loss = train_sparsity_loss / len(train_dataloader)
+        avg_train_spikes = train_avg_spikes / len(train_dataloader)
 
         # Validation phase
         model.eval()
         val_recon_loss = 0.0
         val_sparsity_loss = 0.0
+        val_avg_spikes = 0.0
         with torch.no_grad():
             for batch in val_dataloader:
                 inputs = batch[0].to(device)
@@ -130,12 +144,16 @@ def main():
                 val_recon_loss += reconstruction_loss.item()
                 val_sparsity_loss += sparsity_loss.item()
 
+                num_spikes = (encoded.abs() > args.spike_threshold).float().sum(dim=1)
+                val_avg_spikes += num_spikes.mean().item()
+
         avg_val_recon_loss = val_recon_loss / len(val_dataloader)
         avg_val_sparsity_loss = val_sparsity_loss / len(val_dataloader)
+        avg_val_spikes = val_avg_spikes / len(val_dataloader)
 
         print(f"Epoch {epoch + 1}/{args.epochs} - "
-              f"Train Recon: {avg_train_recon_loss:.6f}, Train Sparsity: {avg_train_sparsity_loss:.6f} | "
-              f"Val Recon: {avg_val_recon_loss:.6f}, Val Sparsity: {avg_val_sparsity_loss:.6f}")
+              f"Train Recon: {avg_train_recon_loss:.6f}, Sparsity: {avg_train_sparsity_loss:.6f}, Spikes: {avg_train_spikes:.2f} | "
+              f"Val Recon: {avg_val_recon_loss:.6f}, Sparsity: {avg_val_sparsity_loss:.6f}, Spikes: {avg_val_spikes:.2f}")
 
     print("\n--- Training complete ---")
 
