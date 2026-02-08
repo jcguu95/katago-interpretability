@@ -13,8 +13,8 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     # This is an official model from the KataGo training repository (media.katagotraining.org),
     # but its small size makes it ideal for fast, automated tests. The previous URL became
     # inaccessible, so this has been updated to a different small model (6-block).
-    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b6c96-s165180416-d25130434.zip"
-    TEST_MODEL_OUTPUT_SHAPE = "(96, 19, 19)"
+    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12404017920-d5711392113.zip"
+    TEST_MODEL_OUTPUT_SHAPE = "(512, 19, 19)"
     model_zip_path = None
     model_dir_path = None
     model_file_path = None

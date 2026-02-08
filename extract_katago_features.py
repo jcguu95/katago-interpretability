@@ -9,13 +9,10 @@ from sgfmill import sgf
 from katago.game import gamestate
 from katago.game import features
 from katago.train.load_model import load_model
-from katago.train.model_pytorch import Model, ExtraOutputs
+from katago.train.model_pytorch import ExtraOutputs
 import torch
 import numpy as np
 from katago.game.board import Board
-import json
-import gzip
-import struct
 # from katago.game import rules
 
 
@@ -76,211 +73,6 @@ def get_state_from_sgf(sgf_file, variation_path_str):
     return state
 
 
-def _load_model_from_text_file(model_filename, pos_len):
-    """Loads a KataGo model from the legacy .txt.gz format."""
-    config_path = os.path.join(os.path.dirname(model_filename), "model.config.json")
-    if not os.path.exists(config_path):
-        raise FileNotFoundError(f"Model config file not found: {config_path}. Required for .txt.gz models.")
-    with open(config_path, 'r') as f:
-        config = json.load(f)
-
-    # Patch old model configs with defaults from newer versions
-    # to ensure compatibility with the current Model class.
-    # The 'gpool' block kind is legacy, modern configs use 'regulargpool'.
-    for block in config.get("block_kind", []):
-        if block[1] == "gpool":
-            block[1] = "regulargpool"
-
-    config.setdefault("norm_kind", "fixup")
-    config.setdefault("bnorm_epsilon", 1e-4)
-    config.setdefault("bnorm_running_avg_momentum", 0.001)
-    config.setdefault("initial_conv_1x1", False)
-    config.setdefault("use_attention_pool", False)
-    config.setdefault("num_attention_pool_heads", 4)
-    config.setdefault("p1_num_channels", 32)
-    config.setdefault("g1_num_channels", 32)
-    config.setdefault("v1_num_channels", 32)
-    config.setdefault("sbv2_num_channels", 48)
-    config.setdefault("num_scorebeliefs", 4)
-    config.setdefault("v2_size", 64)
-
-    model = Model(config, pos_len)
-    model.initialize()
-    state_dict = model.state_dict()
-
-    with gzip.open(model_filename, 'rb') as f:
-        def read_line():
-            return f.readline().decode('ascii').strip()
-
-        def read_tensor_binary(shape):
-            num_weights = int(np.prod(shape))
-            marker = f.read(5)
-            if marker != b'@BIN@':
-                raise ValueError(f"Invalid model format: expected binary marker, got {marker}")
-            data = f.read(num_weights * 4)
-            f.read(1)  # newline
-            return torch.tensor(struct.unpack(f'<{num_weights}f', data)).reshape(shape)
-
-        def parse_conv_weights(name):
-            read_line() # name
-            h, w = int(read_line()), int(read_line())
-            ic, oc = int(read_line()), int(read_line())
-            read_line(); read_line() # dilations
-            weights = read_tensor_binary((h, w, ic, oc))
-            state_dict[name + ".weight"] = weights.permute(3, 2, 0, 1) # y,x,ic,oc -> oc,ic,y,x
-
-        def parse_bn(name):
-            read_line() # name
-            c = int(read_line())
-            read_line() # epsilon
-            has_gamma = (read_line() == '1')
-            has_beta = (read_line() == '1')
-            
-            mean = read_tensor_binary((c,))
-            var = read_tensor_binary((c,))
-            state_dict[name + ".running_mean"] = mean
-            state_dict[name + ".running_var"] = var
-            if name + ".num_batches_tracked" in state_dict:
-                state_dict[name + ".num_batches_tracked"] = torch.tensor(0)
-
-            if has_gamma:
-                gamma = read_tensor_binary((1, c, 1, 1))
-                state_dict[name + ".weight"] = gamma.reshape(-1)
-            if has_beta:
-                beta = read_tensor_binary((1, c, 1, 1))
-                state_dict[name + ".bias"] = beta.reshape(-1)
-
-        def parse_biasmask(name):
-            read_line() # name
-            c = int(read_line())
-            read_line(); read_line(); read_line() # epsilon, has_gamma, has_beta
-            read_tensor_binary((c,)); read_tensor_binary((c,)) # mean, var
-            # In older models, biasmask may or may not have a scale value written
-            module = model.get_submodule(name.replace("model.",""))
-            if module.scale is not None:
-                scale = read_tensor_binary((c,))
-                state_dict[name + ".scale_times_gamma"] = scale # Not a real parameter, just to consume data
-            
-            beta = read_tensor_binary((1, c, 1, 1))
-            state_dict[name + ".beta"] = beta
-
-        def parse_activation(name):
-            read_line(); read_line()
-
-        def parse_matmul(name):
-            read_line()
-            ic, oc = int(read_line()), int(read_line())
-            weights = read_tensor_binary((ic, oc))
-            state_dict[name + ".weight"] = weights.permute(1, 0) # ic,oc -> oc,ic
-
-        def parse_matbias(name):
-            read_line()
-            oc = int(read_line())
-            bias = read_tensor_binary((oc,))
-            state_dict[name + ".bias"] = bias
-            
-        def parse_normactconv(name):
-            parse_bn(name + ".norm")
-            parse_activation(name + ".act")
-            
-            module = model.get_submodule(name.replace("model.",""))
-            if module.convpool is not None:
-                 parse_conv_weights(name + ".convpool.conv1r")
-                 parse_conv_weights(name + ".convpool.conv1g")
-                 parse_bn(name + ".convpool.normg")
-                 parse_activation(name + ".convpool.actg")
-                 parse_matmul(name + ".convpool.linear_g")
-            else:
-                 parse_conv_weights(name + ".conv")
-
-        def parse_block(name, block_type):
-            read_line() # block name
-            if block_type == "ordinary_block" or block_type == "gpool_block":
-                parse_normactconv(name + ".normactconv1")
-                parse_normactconv(name + ".normactconv2")
-            else:
-                raise NotImplementedError(f"Block type {block_type} not supported for text model parsing")
-
-        # Skip header metadata
-        # The number of header lines depends on the model version.
-        for _ in range(4): read_line() # Common header
-        if config["version"] > 12:
-            for _ in range(7): read_line() # Multipliers
-        if config["version"] >= 15:
-            for _ in range(8): read_line() # Metadata and placeholders
-
-        # Parse Trunk
-        assert read_line() == "trunk"
-        num_blocks = int(read_line())
-        for _ in range(5): read_line() # c_trunk, c_mid, etc.
-        if config["version"] >= 15:
-            for _ in range(6): read_line() # placeholders
-
-        parse_conv_weights("model.conv_spatial")
-        parse_matmul("model.linear_global")
-
-        for i in range(num_blocks):
-            block_kind_line = read_line()
-            parse_block(f"model.blocks.{i}", block_kind_line)
-        
-        if model.trunk_normless:
-            parse_biasmask("model.norm_trunkfinal")
-        else:
-            parse_bn("model.norm_trunkfinal")
-        parse_activation("model.act_trunkfinal")
-
-        # Parse Policy Head
-        assert read_line() == "model.policy_head"
-        parse_conv_weights("model.policy_head.conv1p")
-        parse_conv_weights("model.policy_head.conv1g")
-        parse_biasmask("model.policy_head.biasg")
-        parse_activation("model.policy_head.actg")
-        parse_matmul("model.policy_head.linear_g")
-        parse_biasmask("model.policy_head.bias2")
-        parse_activation("model.policy_head.act2")
-        
-        read_line(); h,w,ic,oc = (int(read_line()) for _ in range(4)); read_line(); read_line()
-        weights = read_tensor_binary((h, w, ic, oc))
-        permuted = weights.permute(3,2,0,1)
-        if permuted.shape[0] == 1:
-            state_dict["policy_head.conv2p.weight"][0] = permuted[0]
-        elif permuted.shape[0] == 2:
-            state_dict["policy_head.conv2p.weight"][0] = permuted[0]
-            state_dict["policy_head.conv2p.weight"][5] = permuted[1]
-
-        read_line(); ic, oc = int(read_line()), int(read_line())
-        weights = read_tensor_binary((ic, oc))
-        permuted = weights.permute(1,0)
-        if permuted.shape[0] == 1:
-             state_dict["policy_head.linear_pass.weight"][0] = permuted[0]
-        elif permuted.shape[0] == 2:
-             state_dict["policy_head.linear_pass.weight"][0] = permuted[0]
-             state_dict["policy_head.linear_pass.weight"][5] = permuted[1]
-        
-        # Parse Value Head
-        assert read_line() == "model.value_head"
-        parse_conv_weights("model.value_head.conv1")
-        parse_biasmask("model.value_head.bias1")
-        parse_activation("model.value_head.act1")
-        parse_matmul("model.value_head.linear2")
-        parse_matbias("model.value_head.bias2")
-        parse_activation("model.value_head.act2")
-        parse_matmul("model.value_head.linear_valuehead")
-        parse_matbias("model.value_head.bias_valuehead")
-
-        read_line(); ic, oc = int(read_line()), int(read_line())
-        weights = read_tensor_binary((ic, oc))
-        bias = read_tensor_binary((oc,))
-        permuted_weights = weights.permute(1,0)
-        state_dict["value_head.linear_miscvaluehead.weight"][0:4] = permuted_weights[0:4]
-        state_dict["value_head.linear_miscvaluehead.bias"][0:4] = bias[0:4]
-        state_dict["value_head.linear_moremiscvaluehead.weight"][0:2] = permuted_weights[4:6]
-        state_dict["value_head.linear_moremiscvaluehead.bias"][0:2] = bias[4:6]
-        
-        parse_conv_weights("model.value_head.conv_ownership")
-
-    model.load_state_dict(state_dict)
-    return model, config
 
 def initialize_game_state():
     """Initializes the game state with two stones."""
@@ -365,15 +157,10 @@ class KataGoFeatureExtractor:
                 "This script requires a KataGo model file (.ckpt, .bin.gz, or .txt.gz)."
             )
 
-        if model_filename.endswith(".txt.gz"):
-            print(f"Loading TEXT model from '{model_filename}'")
-            model, config = _load_model_from_text_file(model_filename, pos_len)
-        else:
-            print(f"Loading PyTorch model from '{model_filename}'")
-            model, config, _ = load_model(
-                model_filename, use_swa=False, device="cpu", pos_len=pos_len
-            )
-        
+        print(f"Loading PyTorch model from '{model_filename}'")
+        model, config, _ = load_model(
+            model_filename, use_swa=False, device="cpu", pos_len=pos_len
+        )
         model.eval()  # Set the model to evaluation mode
         return model, config
 
@@ -486,7 +273,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model-path",
-        default="https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12374138624-d5703190512.zip",
+        default="https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12404017920-d5711392113.zip",
         help="Path or URL to a KataGo model file (.ckpt, .bin.gz, .txt.gz) or a .zip archive containing one.",
     )
     parser.add_argument(
