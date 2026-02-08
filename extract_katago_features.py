@@ -4,10 +4,6 @@ import os
 import urllib.request
 import zipfile
 
-# Add submodules to python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'katago', 'python'))
-sys.path.append(os.path.join(os.path.dirname(__file__), 'sgfmill'))
-
 from sgfmill import sgf
 from katago.game import gamestate
 from katago.game import features

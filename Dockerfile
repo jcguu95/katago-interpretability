@@ -27,6 +27,11 @@ COPY . .
 RUN git clone https://github.com/lightvector/KataGo.git katago
 RUN git clone https://github.com/mattheww/sgfmill.git sgfmill
 
+# Install the submodules themselves as packages, without their dependencies,
+# as we manage them explicitly in requirements.txt
+RUN pip install --no-deps ./sgfmill
+RUN pip install --no-deps ./katago/python
+
 # The C++ KataGo engine is not needed for this feature extraction script.
 # We return to the app root, which is the default workdir.
 WORKDIR /app
