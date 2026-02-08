@@ -33,8 +33,8 @@ After the tensor has passed through all residual blocks, it undergoes one final 
 Within the `Model.forward` method, after the loop over `self.blocks` is complete, the following steps occur:
 
 1.  `out = self.norm_trunkfinal(out, ...)` (line 1960): A final normalization layer is applied.
-2.  `out = self.act_trunkfinal(out)` (line 1961): A final activation function (e.g., ReLU) is applied.
-3.  **`extra_outputs.report("trunkfinal", out)`** (line 1964): The resulting tensor is explicitly captured and given the name `"trunkfinal"`.
+2.  `trunkfinal_output = self.act_trunkfinal(out)` (line 1961): A final activation function is applied, and the result is named `trunkfinal_output` for clarity.
+3.  **`extra_outputs.report("trunkfinal", trunkfinal_output)`** (line 1964): This tensor is explicitly captured for feature extraction.
 
 The shape of this `trunkfinal` tensor is `(N, C, H, W)`, where:
 
