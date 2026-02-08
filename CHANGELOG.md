@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1 - 2026-02-08
+
+- **fix**: The `data-pipeline` now automatically downloads the required KataGo model if it is not found locally, preventing errors when run in a clean environment. The `clean` target no longer removes the downloaded model zip, only the extracted files.
+- **feat**: SGF generation (`generate_sgfs.py`) now creates more plausible game openings by playing the first few moves on common hoshi and komoku points instead of being purely random.
+
 ## 0.6.0 - 2026-02-08
 
 - **feat**: Implemented a full training pipeline for the Sparse Autoencoder (SAE).

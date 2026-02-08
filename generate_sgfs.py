@@ -5,11 +5,35 @@ from katago.game.board import Board
 from katago.game.gamestate import GameState
 
 
-def generate_random_game(board_size, num_moves):
-    """Generates a list of moves for a random game."""
+def generate_plausible_game(board_size, num_moves):
+    """Generates a list of moves for a plausible-looking game."""
     state = GameState(board_size=board_size, rules=GameState.RULES_TT)
     moves = []
-    for _ in range(num_moves):
+
+    # Common opening points (hoshis and komokus)
+    opening_points = [
+        (3,3), (3,15), (15,3), (15,15), # hoshi
+        (2,3), (3,2), (16,3), (3,16), # komoku
+        (2,15), (15,2), (16,15), (15,16) # komoku
+    ]
+    random.shuffle(opening_points)
+
+    # Play first few moves on opening points
+    opening_moves = min(len(opening_points), 4) # play up to 4 opening moves
+    for _ in range(opening_moves):
+        if not opening_points:
+            break
+        # Use pop to not repeat points
+        x, y = opening_points.pop(0)
+        loc = state.board.loc(x, y)
+        if state.board.would_be_legal(state.board.pla, loc):
+            moves.append((state.board.pla, loc))
+            state.play(state.board.pla, loc)
+        else: # Should not happen with this list on an empty board, but good practice
+            break
+
+    # Continue with random moves for the rest of the game
+    for _ in range(num_moves - len(moves)):
         possible_moves = []
         for y in range(state.board.y_size):
             for x in range(state.board.x_size):
@@ -18,7 +42,7 @@ def generate_random_game(board_size, num_moves):
                     possible_moves.append(loc)
         
         if not possible_moves:
-            break
+            possible_moves.append(Board.PASS_LOC)
             
         move_loc = random.choice(possible_moves)
         moves.append((state.board.pla, move_loc))
@@ -56,7 +80,7 @@ def main():
     os.makedirs(args.output_dir, exist_ok=True)
 
     for i in range(args.num_files):
-        moves = generate_random_game(19, args.num_moves)
+        moves = generate_plausible_game(19, args.num_moves)
         sgf_content = format_sgf(19, moves)
         filepath = os.path.join(args.output_dir, f"random_game_{i+1}.sgf")
         with open(filepath, "w") as f:

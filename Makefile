@@ -59,6 +59,7 @@ test: install
 # Target for a full, clean test run that downloads the model.
 test-full: clean install
 	@echo "Running full tests (including model download)..."
+	@rm -f $(MODEL_ZIP)
 	@ALLOW_MODEL_DOWNLOAD=1 PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
 
 # --- Data Pipeline ---
@@ -69,7 +70,8 @@ test-full: clean install
 SGF_DIR := generated_sgfs
 ACTIVATIONS_DIR := activations
 # This is the default model downloaded by the scripts if not present.
-MODEL_ZIP := kata1-b28c512nbt-s12404017920-d5711392113.zip
+MODEL_URL := https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12404017920-d5711392113.zip
+MODEL_ZIP := $(notdir $(MODEL_URL))
 ACTIVATIONS_FILE := $(ACTIVATIONS_DIR)/activations.pt
 SAE_MODEL_FILE := $(ACTIVATIONS_DIR)/sae.pt
 
@@ -87,7 +89,11 @@ $(SGF_DIR): install
 # Target to collect activations from the generated SGFs.
 collect-activations: $(ACTIVATIONS_FILE)
 
-$(ACTIVATIONS_FILE): $(SGF_DIR)
+$(MODEL_ZIP): install
+	@echo "--- Downloading Model ---"
+	@$(VENV_PYTHON) -c "import requests, sys; url='$(MODEL_URL)'; filename='$(MODEL_ZIP)'; headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}; print(f'Downloading {url}...', file=sys.stderr); res = requests.get(url, headers=headers, stream=True); res.raise_for_status(); open(filename, 'wb').writelines(res.iter_content(8192))"
+
+$(ACTIVATIONS_FILE): $(SGF_DIR) $(MODEL_ZIP)
 	@echo "--- Collecting activations ---"
 	@PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) collect_activations.py --sgf-dir $(SGF_DIR) --model-path $(MODEL_ZIP) --output-file $(ACTIVATIONS_FILE)
 
@@ -110,7 +116,7 @@ clean:
 	@echo "Cleaning up..."
 	rm -rf $(VENV_DIR)
 	rm -f test.sgf test2.sgf
-	rm -rf kata1-*
+	rm -rf $(patsubst %.zip,%,$(MODEL_ZIP))
 	rm -rf $(SGF_DIR) $(ACTIVATIONS_DIR)
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	@echo "Cleaning submodules..."
