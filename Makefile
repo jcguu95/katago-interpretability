@@ -93,6 +93,7 @@ SAE_BATCH_SIZE := 32
 SAE_LR := 1e-4
 SAE_SPARSITY_COEFF := 1e-3
 SAE_DICT_SIZE_FACTOR := 8
+SAE_ACTIVATION := relu
 
 # Target to run the full data generation and processing pipeline.
 data-pipeline: $(SAE_MODEL_FILE)
@@ -138,7 +139,8 @@ $(SAE_MODEL_FILE): $(ACTIVATIONS_FILE)
 		--batch-size $(SAE_BATCH_SIZE) \
 		--lr $(SAE_LR) \
 		--sparsity-coeff $(SAE_SPARSITY_COEFF) \
-		--dict-size-factor $(SAE_DICT_SIZE_FACTOR)
+		--dict-size-factor $(SAE_DICT_SIZE_FACTOR) \
+		--activation $(SAE_ACTIVATION)
 
 # Target to visualize the trained SAE model.
 visualize-sae: $(SAE_MODEL_FILE)

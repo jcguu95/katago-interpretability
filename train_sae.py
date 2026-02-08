@@ -21,6 +21,7 @@ def main():
     parser.add_argument("--sparsity-type", type=str, default='l1', choices=['l1', 'lp'], help="Type of sparsity penalty.")
     parser.add_argument("--lp-norm-p", type=float, default=0.9, help="The p value for the Lp norm sparsity penalty, if used.")
     parser.add_argument("--dict-size-factor", type=int, default=8, help="Factor to determine dictionary size relative to input features (activation dimension).")
+    parser.add_argument("--activation", type=str, default='relu', choices=['relu', 'gelu'], help="Activation function for the encoder.")
     parser.add_argument("--validation-split", type=float, default=0.2, help="Fraction of data to use for validation.")
     parser.add_argument("--spike-threshold", type=float, default=1e-6, help="Threshold for considering a feature activation a 'spike'.")
     args = parser.parse_args()
@@ -74,7 +75,7 @@ def main():
     print(f"\nInitializing SAE model...")
     print(f"  - Activation dimension ('input_features'): {input_features}")
     print(f"  - SAE hidden dimension ('dict_features'): {dict_features}")
-    model = SparseAutoencoder(input_features, dict_features)
+    model = SparseAutoencoder(input_features, dict_features, activation=args.activation)
     model.to(device)
     print(model)
 
@@ -96,7 +97,7 @@ def main():
 
     print("\n--- Starting training ---")
     print(f"Epochs: {args.epochs}, Batch size: {args.batch_size}, LR: {args.lr}, Validation split: {args.validation_split}")
-    print(f"Sparsity: type={args.sparsity_type}, coeff={args.sparsity_coeff}" + (f", p={args.lp_norm_p}" if args.sparsity_type == 'lp' else ""))
+    print(f"Sparsity: type={args.sparsity_type}, coeff={args.sparsity_coeff}" + (f", p={args.lp_norm_p}" if args.sparsity_type == 'lp' else "") + f", Activation: {args.activation}")
 
     for epoch in range(args.epochs):
         # Training phase

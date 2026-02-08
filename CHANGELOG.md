@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.7 - 2026-02-08
+
+- **feat**: Made the SAE's activation function configurable (`relu` or `gelu`) to facilitate experimentation with different non-linearities.
+- **docs**: Added comments to `sae_model.py` explaining that ReLU is the standard choice for SAEs because its properties naturally encourage sparse activations.
+
 ## 0.11.6 - 2026-02-08
 
 - **docs**: Clarified in `sae_model.py` that the ReLU activation function on the encoder output serves as the essential non-linearity for the autoencoder.
