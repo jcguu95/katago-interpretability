@@ -63,3 +63,6 @@ clean:
 	rm -f test.sgf test2.sgf
 	rm -rf kata1-*
 	find . -type d -name "__pycache__" -exec rm -r {} +
+	@echo "Cleaning submodules..."
+	@git submodule foreach --recursive git clean -fdx
+	@git submodule foreach --recursive git reset --hard
