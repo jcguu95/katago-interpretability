@@ -10,12 +10,12 @@ This project is containerized using Docker to ensure a completely reproducible e
 
 1.  **Prerequisites**: You must have Docker installed on your system.
 
-2.  **Build the Docker Image**: Navigate to the root of the repository and run the build command. This will assemble the environment, compile the KataGo engine, and install all dependencies.
+2.  **Build the Docker Image**: Navigate to the root of the repository and run the following command in your host machine's terminal (not inside another Docker container). This will assemble the environment, compile the KataGo engine, and install all dependencies.
     ```bash
     docker build -t katago-extractor .
     ```
 
-3.  **Run the Extractor**: Create local directories to store your SGF files and the downloaded KataGo models. Then, run the extractor inside the container, mounting these directories as volumes.
+3.  **Run the Extractor**: On your host machine, create local directories to store your SGF files and the downloaded KataGo models. Then, run the extractor inside the container using the following command from your host terminal.
 
     ```bash
     # Create local directories for data and models
@@ -23,7 +23,7 @@ This project is containerized using Docker to ensure a completely reproducible e
     mkdir -p katago_models
 
     # Place your SGF files (e.g., test.sgf, test2.sgf) inside the 'my_sgfs' directory
-    # Now, run the extractor:
+    # Now, run the extractor from your host terminal:
     docker run --rm \
       -v "$(pwd)/my_sgfs:/sgfs" \
       -v "$(pwd)/katago_models:/models" \
@@ -36,7 +36,7 @@ This project is containerized using Docker to ensure a completely reproducible e
 
 ## Testing
 
-The test suite can be run inside the container to verify its functionality against the controlled environment.
+The test suite can be run inside the container to verify its functionality against the controlled environment. Run these commands from your host machine's terminal.
 
 ```bash
 docker build -t katago-extractor-test .
