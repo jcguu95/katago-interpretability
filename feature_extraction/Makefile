@@ -12,11 +12,11 @@ help:
 
 test:
 	@echo "Running feature extractor tests..."
-	@PYTHONPATH=..:../katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
+	@cd .. && PYTHONPATH=.:./katago/python $(subst ../,,$(VENV_PYTHON)) -m unittest feature_extraction.test_extract_katago_features
 
 test-full:
 	@echo "Running full feature extractor tests (including model download)..."
-	@ALLOW_MODEL_DOWNLOAD=1 PYTHONPATH=..:../katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
+	@cd .. && ALLOW_MODEL_DOWNLOAD=1 PYTHONPATH=.:./katago/python $(subst ../,,$(VENV_PYTHON)) -m unittest feature_extraction.test_extract_katago_features
 
 clean:
 	@echo "Cleaning up feature_extraction directory..."
