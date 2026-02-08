@@ -147,6 +147,9 @@ class KataGoFeatureExtractor:
             self.model, extra_output_names=extra_output_names
         )
         trunkfinal_output = outputs["trunkfinal"]
+        # Squeeze the batch dimension if it's 1
+        if trunkfinal_output.shape[0] == 1:
+            return trunkfinal_output[0]
         return trunkfinal_output
 
     def extract_trunkfinal_output_batch(self, states):

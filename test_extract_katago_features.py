@@ -5,6 +5,9 @@ import sys
 
 class TestFeatureExtractorCLI(unittest.TestCase):
     SCRIPT_PATH = 'extract_katago_features.py'
+    # Use a tiny 2-block model for testing to speed things up
+    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b2c96-s133333504-d2533815.zip"
+    TEST_MODEL_OUTPUT_SHAPE = "(96, 19, 19)"
     TEST_SGF_CONTENT = "(;GM[1]SZ[19];B[aa];W[bb])"
     TEST2_SGF_CONTENT = "(;GM[1]SZ[19];B[dd];W[pp];B[dp])"
     TEST_SGF_FILENAME = "test.sgf"
@@ -32,15 +35,16 @@ class TestFeatureExtractorCLI(unittest.TestCase):
 
     def test_single_node(self):
         """Test extracting features for a single node."""
-        args = ['--sgf-node', self.TEST_SGF_FILENAME, "0,0"]
+        args = ['--sgf-node', self.TEST_SGF_FILENAME, "0,0", '--model-path', self.TEST_MODEL_URL]
         result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn(f"--- Features for {self.TEST_SGF_FILENAME} at path '0,0' ---", result.stdout)
-        self.assertIn("Trunkfinal output shape: (512, 19, 19)", result.stdout)
+        self.assertIn(f"Trunkfinal output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
 
     def test_batch_processing(self):
         """Test batch processing of multiple nodes."""
         args = [
+            '--model-path', self.TEST_MODEL_URL,
             '--sgf-node', self.TEST_SGF_FILENAME, "",
             '--sgf-node', self.TEST2_SGF_FILENAME, "0,0,1"
         ]
@@ -48,7 +52,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn(f"--- Features for {self.TEST_SGF_FILENAME} at path 'root' ---", result.stdout)
         self.assertIn(f"--- Features for {self.TEST2_SGF_FILENAME} at path '0,0,1' ---", result.stdout)
-        self.assertEqual(result.stdout.count("Trunkfinal output shape:"), 2)
+        self.assertEqual(result.stdout.count(f"Trunkfinal output shape:"), 2)
 
     def test_invalid_variation_path(self):
         """Test with an invalid variation path."""
@@ -66,10 +70,11 @@ class TestFeatureExtractorCLI(unittest.TestCase):
 
     def test_no_args(self):
         """Test running the script with no SGF arguments, which should run the demo."""
-        result = self.run_script([])
+        args = ['--model-path', self.TEST_MODEL_URL]
+        result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn("--- Using initial demo game state ---", result.stdout)
-        self.assertIn("Trunkfinal output shape: (512, 19, 19)", result.stdout)
+        self.assertIn(f"Trunkfinal output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
 
 if __name__ == '__main__':
     unittest.main()
