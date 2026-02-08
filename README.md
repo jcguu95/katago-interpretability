@@ -14,26 +14,39 @@ The project is organized into two main components:
 
 ## Quick Start
 
-This project uses `Makefile`s to automate setup and testing.
+The recommended way to test this repository is using a Docker container, which ensures a consistent and reproducible Linux environment.
 
 1.  **Clone the Repository**:
     ```bash
-    git clone --recurse-submodules https://github.com/your-username/katago-interpretability.git
+    git clone --recurse-submodules https://github.com/jcguu95/katago-interpretability.git
     cd katago-interpretability
     ```
     *If you have already cloned the repository without the submodules, you can initialize them by running `git submodule update --init --recursive`.*
 
-2.  **Install Dependencies**: This command creates a Python virtual environment in `venv/` and installs all dependencies.
+2.  **Run Tests with Docker**: The following command will run a full, clean test of both the feature extractor and the end-to-end SAE training pipeline inside a container.
+    ```bash
+    docker run --rm \
+        --user $(id -u):$(id -g) \
+        --volume $(pwd):/app \
+        paulgauthier/aider-full \
+        make test-pipeline-full
+    ```
+
+### Local Development Setup
+
+If you prefer to work outside of Docker, you can set up a local environment using a Python virtual environment.
+
+1.  **Install Dependencies**:
     ```bash
     make install
     ```
 
-3.  **Run Tests**: There are two sets of tests:
-    - **Feature Extractor Tests**: To test only the standalone feature extraction component. The `-full` version cleans everything and downloads the model.
+2.  **Run Tests**: After installation, you can run the individual test suites:
+    - **Feature Extractor Tests**:
       ```bash
       make test-extractor-full
       ```
-    - **Full Pipeline Test**: To run a clean, end-to-end test of the entire SAE training pipeline.
+    - **Full Pipeline Test**:
       ```bash
       make test-pipeline-full
       ```
@@ -199,24 +212,20 @@ This project is developed and tested on a Linux environment. The Python package 
 
 There are no external system dependencies required to run this project on the tested Linux platform, as it only uses the Python components of its submodules. If you are attempting to run on an unsupported platform (such as macOS) and `pip` needs to build packages like `numpy` or `torch` from source, you may need to install additional build tools (e.g., `ninja`).
 
-#### Development with Docker and Aider
+#### Development with Docker
 
 For a reproducible development environment, you can use a Docker container. This is the environment used for recent development on this project.
 
-1.  **Start the container**: The following command starts an `aider` session within a container, mounting the current directory.
+1.  **Start an interactive shell**: The following command starts a shell session within a container, mounting the current directory.
     ```bash
     docker run -it --rm \
         --user $(id -u):$(id -g) \
         --volume $(pwd):/app \
-        --env GEMINI_API_KEY="YOUR_API_KEY" \
-        paulgauthier/aider-full \
-        --model gemini \
-        --no-stream \
-        --weak-model gemini/gemini-2.0-flash-lite
+        --entrypoint /bin/bash \
+        paulgauthier/aider-full
     ```
-    *Note: Replace `"YOUR_API_KEY"` with your actual API key. You can exit the `aider` session with `/exit` to get a regular shell prompt inside the container.*
 
-2.  **Run tests inside the container**: Once you have a shell inside the container, you can run the full pipeline test:
+2.  **Run commands inside the container**: Once you have a shell inside the container, you can run any of the `make` commands, for example:
     ```bash
     make test-pipeline-full
     ```
