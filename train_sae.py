@@ -44,11 +44,14 @@ def main():
     print(f"  - Shape: {activations.shape}")
     print(f"  - DType: {activations.dtype}")
 
-    # Flatten the activations
+    # Reshape activations for SAE training
     num_samples, C, H, W = activations.shape
-    input_features = C * H * W
-    activations = activations.view(num_samples, -1)
-    print(f"  - Flattened shape: {activations.shape}")
+    input_features = C
+    # Treat each spatial location (pixel) as a sample, and channels as features.
+    # From (N, C, H, W) to (N*H*W, C)
+    activations = activations.permute(0, 2, 3, 1).contiguous()
+    activations = activations.view(-1, C)
+    print(f"  - Reshaped for SAE: {activations.shape}")
 
     dict_features = input_features * args.dict_size_factor
 

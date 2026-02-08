@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.7 - 2026-02-08
+
+- **fix**: The SAE training script (`train_sae.py`) no longer flattens the entire activation map into the feature dimension. It now correctly treats each spatial location as a sample and the channels as the feature vector, which resolves the out-of-memory `Killed` error during model initialization.
+- **fix**: Refactored the `Makefile` to prevent re-downloading the model if the extracted model directory exists but the `.zip` archive has been deleted.
+
 ## 0.6.6 - 2026-02-08
 
 - **fix**: Resolved a `SyntaxError` in the `Makefile`'s model download command. The Python one-liner was using a `with` statement, which is not valid in that context. It has been replaced with an equivalent `open`/`close` sequence.

@@ -91,13 +91,16 @@ $(SGF_DIR): install
 # Target to collect activations from the generated SGFs.
 collect-activations: $(ACTIVATIONS_FILE)
 
-$(MODEL_ZIP): $(INSTALL_STAMP)
-	@echo "--- Downloading Model ---"
-	@$(VENV_PYTHON) -c "import requests, sys, os; url='$(MODEL_URL)'; filename='$(MODEL_ZIP)'; tmp_filename=filename+'.part'; headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}; print(f'Downloading {url}...', file=sys.stderr); res = requests.get(url, headers=headers, stream=True); res.raise_for_status(); f = open(tmp_filename, 'wb'); f.writelines(res.iter_content(8192)); f.close(); os.rename(tmp_filename, filename)"
-
-$(MODEL_CKPT): $(MODEL_ZIP)
+$(MODEL_CKPT):
+	@# This rule only runs if the .ckpt file is missing.
+	@if [ ! -f "$(MODEL_ZIP)" ]; then \
+		echo "--- Downloading Model ---"; \
+		$(VENV_PYTHON) -c "import requests, sys, os; url='$(MODEL_URL)'; filename='$(MODEL_ZIP)'; tmp_filename=filename+'.part'; headers={'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}; print(f'Downloading {url}...', file=sys.stderr); res = requests.get(url, headers=headers, stream=True); res.raise_for_status(); f = open(tmp_filename, 'wb'); f.writelines(res.iter_content(8192)); f.close(); os.rename(tmp_filename, filename)"; \
+	fi
 	@echo "--- Extracting model from $(MODEL_ZIP) ---"
-	@$(VENV_PYTHON) -c "import zipfile; zipfile.ZipFile('$(MODEL_ZIP)','r').extractall('.')"
+	@$(VENV_PYTHON) -c "import zipfile, os; \
+	if not os.path.exists('$(MODEL_CKPT)'): \
+	    with zipfile.ZipFile('$(MODEL_ZIP)','r') as zip_ref: zip_ref.extractall('.')"
 
 $(ACTIVATIONS_FILE): $(SGF_DIR) $(MODEL_CKPT)
 	@echo "--- Collecting activations ---"
