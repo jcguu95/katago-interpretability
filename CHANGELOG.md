@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.0 - 2026-02-08
+
+- **milestone**: Completed a detailed investigation of KataGo's feature extractor. The v0.10.x series has culminated in a solid understanding of the model's architecture and the `trunkfinal` activations.
+- **note**: The main goal of the v0.11.x series is to gain a precise understanding of the Sparse Autoencoder (SAE) training architecture as implemented in this project.
+
 ## 0.10.8 - 2026-02-08
 
 - **docs**: Corrected and clarified the architecture document. The `trunkfinal` tensor is named `out` in the source code when passed to the policy/value heads, and this is now explicitly stated. This reverts a previous documentation change that incorrectly reflected a rejected code modification.
