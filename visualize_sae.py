@@ -4,17 +4,7 @@ import torch.nn as nn
 import random
 import sys
 
-# The SAE model architecture must match the one used for training.
-class SparseAutoencoder(nn.Module):
-    def __init__(self, input_features, dict_features):
-        super(SparseAutoencoder, self).__init__()
-        self.encoder = nn.Linear(input_features, dict_features)
-        self.decoder = nn.Linear(dict_features, input_features)
-
-    def forward(self, x):
-        encoded = torch.relu(self.encoder(x))
-        decoded = self.decoder(encoded)
-        return decoded, encoded
+from sae_model import SparseAutoencoder
 
 def main():
     parser = argparse.ArgumentParser(description="Visualize a trained Sparse Autoencoder.")

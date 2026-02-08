@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.7 - 2026-02-08
+
+- **refactor**: The `SparseAutoencoder` class has been moved into its own file (`sae_model.py`) to eliminate code duplication between the training and visualization scripts.
+
 ## 0.9.6 - 2026-02-08
 
 - **fix**: The `clean` command in `feature_extraction/Makefile` no longer attempts to delete model files, which was causing models to be deleted unintentionally.
