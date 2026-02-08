@@ -11,8 +11,9 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     SCRIPT_PATH = 'extract_katago_features.py'
     # Use a tiny 2-block model for testing to speed things up.
     # This is an official model from the KataGo training repository (media.katagotraining.org),
-    # but its small size makes it ideal for fast, automated tests.
-    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b2c96-s133333504-d2533815.zip"
+    # but its small size makes it ideal for fast, automated tests. The previous URL became
+    # inaccessible, so this has been updated to a different small model (6-block).
+    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/g170/g170-b6c96-s175395328-d46613702.zip"
     TEST_MODEL_OUTPUT_SHAPE = "(96, 19, 19)"
     model_zip_path = None
     model_dir_path = None
