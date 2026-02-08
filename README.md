@@ -1,4 +1,4 @@
-# KataGo Feature Extractor
+# KataGo Interpretability
 
 ## Overview
 
@@ -16,8 +16,8 @@ This project uses `Makefile`s to automate setup and testing.
 
 1.  **Clone the Repository**:
     ```bash
-    git clone --recurse-submodules https://github.com/your-username/katago-feature-extractor.git
-    cd katago-feature-extractor
+    git clone --recurse-submodules https://github.com/your-username/katago-interpretability.git
+    cd katago-interpretability
     ```
     *If you have already cloned the repository without the submodules, you can initialize them by running `git submodule update --init --recursive`.*
 

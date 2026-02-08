@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.14 - 2026-02-08
+
+- **docs**: Renamed the project to "KataGo Interpretability" to better reflect its purpose and updated documentation accordingly.
+
 ## 0.9.13 - 2026-02-08
 
 - **refactor**: Removed the activation visualization feature from `verify_activations.py`. This simplifies the script's purpose to data verification and resolves an associated linting error.
