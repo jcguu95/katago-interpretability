@@ -7,7 +7,6 @@
   - `collect_activations.py`: New script to process a directory of SGF files, extract `trunkfinal` activations for every board state, and save them to a `.pt` file with reproducibility metadata.
   - `train_sae.py`: New stub script that demonstrates loading the activations file, preparing for future SAE model training.
 - **chore**: Integrated the new data pipeline scripts into the `Makefile` under the `make data-pipeline` target.
-- **fix**: Corrected a bug in `extract_katago_features.py` where a non-existent `play_pass` method was called for pass moves in SGFs.
 
 ## 0.4.0 - 2026-02-08
 
