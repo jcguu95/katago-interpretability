@@ -36,6 +36,15 @@ Within the `Model.forward` method, after the loop over `self.blocks` is complete
 2.  `out = self.act_trunkfinal(out)` (line 1961): A final activation function (e.g., ReLU) is applied.
 3.  **`extra_outputs.report("trunkfinal", out)`** (line 1964): The resulting tensor is explicitly captured and given the name `"trunkfinal"`.
 
+The shape of this `trunkfinal` tensor is `(N, C, H, W)`, where:
+
+-   `N`: Batch size (the number of board positions being processed).
+-   `C`: Number of channels in the trunk (`c_trunk`), a key hyperparameter of the model. For the model used in our tests (`kata1-b28c512nbt`), this value is 512.
+-   `H`: Board height (e.g., 19).
+-   `W`: Board width (e.g., 19).
+
+This tensor is a rich, high-dimensional representation of the board state, which is then used by the final layers to make predictions.
+
 ### 4. The Policy and Value Heads (The Network's "Branches")
 
 The `trunkfinal` tensor is the last *shared* representation. From this point, the network branches into separate "heads" that perform distinct tasks.

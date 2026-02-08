@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.4 - 2026-02-08
+
+- **docs**: Updated `docs/katago_model_architecture.md` to include the shape of the `trunkfinal` tensor.
+
 ## 0.10.3 - 2026-02-08
 
 - **docs**: Added a new document, `docs/katago_model_architecture.md`, explaining the architecture of KataGo's neural network and confirming that `trunkfinal` is the correct layer for feature extraction.
