@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.6 - 2026-02-08
+
+- **fix**: Resolved a `SyntaxError` in the `Makefile`'s model download command. The Python one-liner was using a `with` statement, which is not valid in that context. It has been replaced with an equivalent `open`/`close` sequence.
+
 ## 0.6.5 - 2026-02-08
 
 - **fix**: The `Makefile`'s data pipeline now checks for the extracted model before attempting to download the model archive. This prevents re-downloading the model if it has been unzipped but the archive is missing.
