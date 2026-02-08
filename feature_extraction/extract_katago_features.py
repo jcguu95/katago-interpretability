@@ -90,11 +90,6 @@ class KataGoFeatureExtractor:
         print(f"Using device: {self.device}")
         self.model, config = self._load_katago_model(model_path, board_size)
 
-        # --- DEBUG: Print model architecture to identify layer names ---
-        print("\n--- KataGo Model Architecture ---")
-        print(self.model)
-        print("---------------------------------\n")
-
         # If config is not returned by load_model, try to get it from the model object
         if config is None and hasattr(self.model, 'config'):
             config = self.model.config

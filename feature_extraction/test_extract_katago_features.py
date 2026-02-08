@@ -190,7 +190,7 @@ class TestFeatureExtractorConsistency(unittest.TestCase):
         # initial demo game state. If the model or the state generation logic changes,
         # this hash must be updated. To get the new hash, run the test and copy the
         # value from the failure message.
-        expected_hash = "PASTE_THE_CORRECT_HASH_HERE"
+        expected_hash = "0ce0a91c85a304015cb5a19865a7662c0db7bd7d7912b2f35064a9b55247870f"
 
         self.assertEqual(
             output_hash,

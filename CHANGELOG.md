@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.6 - 2026-02-08
+
+- **test**: Updated the expected hash in the numerical consistency test to match the current model's output.
+- **refactor**: Removed the debug print of the model architecture from the feature extractor to clean up test output.
+
 ## 0.10.5 - 2026-02-08
 
 - **docs**: Clarified the purpose of `extract_trunkfinal_output` as a single-state convenience wrapper around the batch processing method.
