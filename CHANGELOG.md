@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.13 - 2026-02-08
+
+- **refactor**: Removed the activation visualization feature from `verify_activations.py`. This simplifies the script's purpose to data verification and resolves an associated linting error.
+
 ## 0.9.12 - 2026-02-08
 
 - **feat**: Added visualization to `verify_activations.py`. The script can now plot a heatmap of any activation channel over the board to visually confirm feature extraction is working correctly.

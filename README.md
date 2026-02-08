@@ -74,17 +74,7 @@ python verify_activations.py \
   --move-number 50 \
   --model-path models/b10c128-20230103.ckpt
 ```
-The script will print the board state and a summary of the extracted activation tensor (shape, mean, min, max, etc.).
-
-You can also visualize a specific activation channel as a heatmap to get an intuitive sense of what the model is "seeing":
-```bash
-python verify_activations.py \
-  --sgf-file path/to/your/game.sgf \
-  --move-number 50 \
-  --model-path models/b10c128-20230103.ckpt \
-  --visualize-channel 42
-```
-*Note: The visualization feature requires `matplotlib`. If it's not installed, the script will provide instructions.*
+The script will print the board state and a summary of the extracted activation tensor (shape, mean, min, max, etc.). This allows you to build confidence in the data before running the full `collect_activations.py` script.
 
 ## Visualizing SAE Features
 
