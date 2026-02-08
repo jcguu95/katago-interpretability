@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.6 - 2026-02-08
+
+- **fix**: The `clean` command in `feature_extraction/Makefile` no longer attempts to delete model files, which was causing models to be deleted unintentionally.
+- **chore**: The `test-extractor-full` command now explicitly deletes the model archive before running to ensure the download logic is tested. The model is preserved after the test completes for use in subsequent runs.
+
 ## 0.9.5 - 2026-02-08
 
 - **fix**: The feature extractor test suite (`test_extract_katago_features.py`) no longer deletes the downloaded model archive on completion. This ensures the model is cached between test runs and fixes a `FileNotFoundError` when `make test-extractor` was run after a full test.

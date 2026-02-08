@@ -20,7 +20,4 @@ test-full:
 
 clean:
 	@echo "Cleaning up feature_extraction directory..."
-	rm -f test.sgf test2.sgf
-	rm -f *.zip
-	rm -rf kata1-*
 	find . -type d -name "__pycache__" -exec rm -r {} +

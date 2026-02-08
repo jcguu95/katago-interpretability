@@ -62,6 +62,8 @@ test-extractor: install
 
 # Target for a full, clean test run of the feature extractor that downloads the model.
 test-extractor-full: clean install
+	@echo "Removing existing model to test download..."
+	@rm -f $(MODEL_ZIP)
 	@$(MAKE) -C feature_extraction test-full
 
 # Target for a full test of everything, including the data pipeline.
