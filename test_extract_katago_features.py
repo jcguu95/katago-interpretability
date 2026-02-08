@@ -17,7 +17,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     TEST_MODEL_OUTPUT_SHAPE = "(96, 19, 19)"
     model_zip_path = None
     model_dir_path = None
-    model_ckpt_path = None
+    model_file_path = None
     TEST_SGF_CONTENT = "(;GM[1]SZ[19];B[aa];W[bb])"
     TEST2_SGF_CONTENT = "(;GM[1]SZ[19];B[dd];W[pp];B[dp])"
     TEST_SGF_FILENAME = "test.sgf"
@@ -56,23 +56,24 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         
         # Determine model path from zip contents and extract if necessary.
         with zipfile.ZipFile(cls.model_zip_path, 'r') as zip_ref:
-            model_ckpt_zip_path = None
-            # Find the full path to model.ckpt within the zip archive
+            model_file_zip_path = None
+            # Find the full path to model file within the zip archive
             for name in zip_ref.namelist():
-                if name.endswith('model.ckpt'):
-                    model_ckpt_zip_path = name
+                if name.endswith('.ckpt') or name.endswith('.bin.gz'):
+                    model_file_zip_path = name
                     break
 
-            if not model_ckpt_zip_path:
-                raise RuntimeError(f"Could not find model.ckpt in the test model zip: {cls.model_zip_path}")
+            if not model_file_zip_path:
+                contents = "\n".join(zip_ref.namelist())
+                raise RuntimeError(f"Could not find model file (.ckpt or .bin.gz) in the zip: {cls.model_zip_path}\nContents:\n{contents}")
             
-            # The directory path is the parent of model.ckpt
-            model_dir_name = os.path.dirname(model_ckpt_zip_path)
+            # The directory path is the parent of model file
+            model_dir_name = os.path.dirname(model_file_zip_path)
             cls.model_dir_path = os.path.abspath(model_dir_name)
-            cls.model_ckpt_path = os.path.join(cls.model_dir_path, "model.ckpt")
+            cls.model_file_path = os.path.abspath(model_file_zip_path)
 
-            if not os.path.exists(cls.model_dir_path):
-                print(f"Extracting model to {cls.model_dir_path}...")
+            if not os.path.exists(cls.model_dir_path) or not os.path.exists(cls.model_file_path):
+                print(f"Extracting model...")
                 zip_ref.extractall(".")
         
         print("Model setup complete.")
@@ -97,7 +98,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
 
     def test_single_node(self):
         """Test extracting features for a single node."""
-        args = ['--sgf-node', self.TEST_SGF_FILENAME, "0,0", '--model-path', self.model_ckpt_path]
+        args = ['--sgf-node', self.TEST_SGF_FILENAME, "0,0", '--model-path', self.model_file_path]
         result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn(f"--- Features for {self.TEST_SGF_FILENAME} at path '0,0' ---", result.stdout)
@@ -106,7 +107,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     def test_batch_processing(self):
         """Test batch processing of multiple nodes."""
         args = [
-            '--model-path', self.model_ckpt_path,
+            '--model-path', self.model_file_path,
             '--sgf-node', self.TEST_SGF_FILENAME, "",
             '--sgf-node', self.TEST2_SGF_FILENAME, "0,0,0"
         ]
@@ -118,21 +119,21 @@ class TestFeatureExtractorCLI(unittest.TestCase):
 
     def test_invalid_variation_path(self):
         """Test with an invalid variation path."""
-        args = ['--model-path', self.model_ckpt_path, '--sgf-node', self.TEST2_SGF_FILENAME, "0,1"]
+        args = ['--model-path', self.model_file_path, '--sgf-node', self.TEST2_SGF_FILENAME, "0,1"]
         result = self.run_script(args)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("Invalid variation path: branch index 1 is out of range", result.stderr)
 
     def test_missing_sgf_file(self):
         """Test with a non-existent SGF file."""
-        args = ['--model-path', self.model_ckpt_path, '--sgf-node', 'non_existent_file.sgf', ""]
+        args = ['--model-path', self.model_file_path, '--sgf-node', 'non_existent_file.sgf', ""]
         result = self.run_script(args)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("SGF file not found: non_existent_file.sgf", result.stderr)
 
     def test_no_args(self):
         """Test running the script with no SGF arguments, which should run the demo."""
-        args = ['--model-path', self.model_ckpt_path]
+        args = ['--model-path', self.model_file_path]
         result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn("--- Using initial demo game state ---", result.stdout)

@@ -106,19 +106,9 @@ class KataGoFeatureExtractor:
             # If a local path is provided, use it as is.
             local_path = model_path
 
-        model_filename = local_path
-        if local_path.endswith(".zip"):
-            # The zip is expected to extract to a directory named after the zip, containing 'model.ckpt'
-            unzipped_dir = os.path.splitext(local_path)[0]
-            model_filename = os.path.join(unzipped_dir, "model.ckpt")
-
-        # Download if the target model file doesn't exist and a URL is provided
-        if not os.path.exists(model_filename) and (
-            model_path.startswith("http://") or model_path.startswith("https://")
-        ):
+        # If a URL is provided, download the model.
+        if is_url and not os.path.exists(local_path):
             print(f"Model not found locally. Downloading from {model_path}...")
-
-            # Add more browser-like headers to avoid 403 Forbidden error
             headers = {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
@@ -134,22 +124,36 @@ class KataGoFeatureExtractor:
             except requests.exceptions.RequestException as e:
                 print(f"Failed to download model: {e}", file=sys.stderr)
                 sys.exit(1)
-
             print(f"Downloaded to {local_path}.")
 
-        # Unzip if we have a zip file and the target model doesn't exist yet
-        if local_path.endswith(".zip") and not os.path.exists(model_filename):
-            print(f"Extracting {local_path}...")
-            # Extract into the same directory as the zip file.
-            extract_dir = os.path.dirname(local_path)
-            with zipfile.ZipFile(local_path, 'r') as zip_ref:
-                zip_ref.extractall(extract_dir)
-            print("Extraction complete.")
+        model_filename = local_path
+        if local_path.endswith(".zip"):
+            extract_dir = os.path.splitext(local_path)[0]
+            # Unzip if the extract directory doesn't exist
+            if not os.path.exists(extract_dir):
+                print(f"Extracting {local_path}...")
+                with zipfile.ZipFile(local_path, 'r') as zip_ref:
+                    zip_ref.extractall(extract_dir)
+                print("Extraction complete.")
+
+            # Search for the model file in the extracted directory
+            found_model_path = None
+            for root, dirs, files in os.walk(extract_dir):
+                for file in files:
+                    if file.endswith((".ckpt", ".bin.gz")):
+                        found_model_path = os.path.join(root, file)
+                        break
+                if found_model_path:
+                    break
+            
+            if not found_model_path:
+                raise FileNotFoundError(f"Could not find a model file (.ckpt or .bin.gz) in the extracted contents of {local_path}")
+            model_filename = found_model_path
 
         if not os.path.exists(model_filename):
             raise FileNotFoundError(
                 f"Model file not found at {model_filename}. "
-                "This script requires a PyTorch-native model file (.ckpt)."
+                "This script requires a KataGo model file (.ckpt or .bin.gz)."
             )
 
         print(f"Loading PyTorch model from '{model_filename}'")
