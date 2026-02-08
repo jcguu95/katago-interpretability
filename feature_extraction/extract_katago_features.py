@@ -84,17 +84,17 @@ def initialize_game_state():
 class KataGoFeatureExtractor:
     """A class to handle KataGo model loading and feature extraction."""
 
-    def __init__(self, model_path, pos_len):
+    def __init__(self, model_path, board_size):
         """Initializes the feature extractor and loads the model."""
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         print(f"Using device: {self.device}")
-        self.model, config = self._load_katago_model(model_path, pos_len)
+        self.model, config = self._load_katago_model(model_path, board_size)
         # If config is not returned by load_model, try to get it from the model object
         if config is None and hasattr(self.model, 'config'):
             config = self.model.config
-        self.features_obj = features.Features(config, pos_len)
+        self.features_obj = features.Features(config, board_size)
 
-    def _load_katago_model(self, model_path, pos_len):
+    def _load_katago_model(self, model_path, board_size):
         """Loads a PyTorch-native KataGo model (.ckpt), downloading and unzipping if necessary."""
         is_url = model_path.startswith("http://") or model_path.startswith("https://")
 
@@ -150,7 +150,7 @@ class KataGoFeatureExtractor:
 
         print(f"Loading PyTorch model from '{model_filename}'")
         model, config, _ = load_model(
-            model_filename, use_swa=False, device=self.device, pos_len=pos_len
+            model_filename, use_swa=False, device=self.device, board_size=board_size
         )
         model.eval()  # Set the model to evaluation mode
         return model, config
@@ -167,7 +167,7 @@ class KataGoFeatureExtractor:
             return np.array([])
 
         batch_size = len(states)
-        pos_len = self.features_obj.pos_len
+        board_size = self.features_obj.board_size
         # Get shapes from the features object
         binary_input_data = np.zeros(shape=[batch_size] + self.features_obj.bin_input_shape, dtype=np.float32)
         global_input_data = np.zeros(shape=[batch_size] + self.features_obj.global_input_shape, dtype=np.float32)
@@ -176,7 +176,7 @@ class KataGoFeatureExtractor:
         # We need to reshape the array before passing it to the function.
         # This creates a view, so modifications will be reflected in the original array.
         binary_input_data_to_fill = np.transpose(binary_input_data, axes=(0, 2, 3, 1))
-        binary_input_data_to_fill = binary_input_data_to_fill.reshape([batch_size, pos_len * pos_len, -1])
+        binary_input_data_to_fill = binary_input_data_to_fill.reshape([batch_size, board_size * board_size, -1])
 
         for i, state in enumerate(states):
             pla = state.board.pla
@@ -233,9 +233,9 @@ def extract_features(args):
                 sys.exit(1)
             return
 
-        # Determine pos_len from the first valid state
-        pos_len = states[0].board_size
-        extractor = KataGoFeatureExtractor(args.model_path, pos_len)
+        # Determine board_size from the first valid state
+        board_size = states[0].board_size
+        extractor = KataGoFeatureExtractor(args.model_path, board_size)
 
         print(f"--- Extracting features for {len(states)} positions in a single batch ---")
         trunkfinal_outputs = extractor.extract_trunkfinal_output_batch(states)
@@ -247,8 +247,8 @@ def extract_features(args):
     else:
         print("--- Using initial demo game state ---")
         state = initialize_game_state()
-        pos_len = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
-        extractor = KataGoFeatureExtractor(args.model_path, pos_len)
+        board_size = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
+        extractor = KataGoFeatureExtractor(args.model_path, board_size)
 
         print("\n--- Extracting features for the specified game state ---")
         trunkfinal_output = extractor.extract_trunkfinal_output(state)
