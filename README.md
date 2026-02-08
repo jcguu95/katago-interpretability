@@ -4,40 +4,58 @@
 
 This script, `extract_katago_features.py`, demonstrates how to load a pre-trained KataGo neural network model and extract internal features from it for a given Go board position. Specifically, it extracts the output of the 'trunkfinal' layer, which represents the model's processed spatial features of the board state. This is the core functionality of this repository.
 
-## How to Use
+## Quick Start
 
-This project is containerized using Docker to ensure a completely reproducible environment.
+This project uses a `Makefile` to automate setup and testing. For details on the commands being run, you can inspect the `Makefile`.
 
-1.  **Prerequisites**: You must have Docker installed on your system.
-
-2.  **Build the Docker Image**: Navigate to the root of the repository and run the following command in your host machine's terminal (not inside another Docker container). This will assemble the environment, compile the KataGo engine, and install all dependencies.
+1.  **Clone the Repository**:
     ```bash
-    docker build -t katago-extractor .
+    git clone --recurse-submodules https://github.com/your-username/katago-feature-extractor.git
+    cd katago-feature-extractor
+    ```
+    *If you have already cloned the repository without the submodules, you can initialize them by running `git submodule update --init --recursive`.*
+
+2.  **Install Dependencies**: This command creates a Python virtual environment in `venv/` and installs all dependencies.
+    ```bash
+    make install
     ```
 
-3.  **Run the Extractor**: On your host machine, create local directories to store your SGF files and the downloaded KataGo models. Then, run the extractor inside the container using the following command from your host terminal.
-
+3.  **Run Tests**: This command runs the test suite. The first time it is run, it will automatically download a small KataGo model required for testing.
     ```bash
-    # Create local directories for data and models
+    make test
+    ```
+
+## Usage
+
+After setting up the environment with `make install`, you can run the main extraction script. You must first activate the virtual environment that was created.
+
+1.  **Activate the Environment**:
+    ```bash
+    source venv/bin/activate
+    ```
+
+2.  **Set `PYTHONPATH`**:
+    ```bash
+    export PYTHONPATH=$(pwd)/katago/python
+    ```
+
+3.  **Run the Script**:
+    ```bash
+    # Create a directory for your SGF files if you don't have one
     mkdir -p my_sgfs
-    mkdir -p katago_models
+    # (Place your SGF files in 'my_sgfs')
 
-    # Place your SGF files (e.g., test.sgf, test2.sgf) inside the 'my_sgfs' directory
-    # Now, run the extractor from your host terminal:
-    docker run --rm \
-      -v "$(pwd)/my_sgfs:/sgfs" \
-      -v "$(pwd)/katago_models:/models" \
-      katago-extractor \
-      --sgf-node /sgfs/test.sgf "" \
-      --sgf-node /sgfs/test2.sgf "0,0,1"
+    # Example: Extract features from two different SGF files
+    python extract_katago_features.py \
+      --sgf-node my_sgfs/test.sgf "" \
+      --sgf-node my_sgfs/test2.sgf "0,0,1"
     ```
+    *Note: The first time you run this script, it will download a default KataGo model, which may take some time.*
 
-    *The first time you run this command, the script will download a KataGo model into your `katago_models` directory, which may take some time. Subsequent runs will be much faster as they will use the local copy.*
+## Reproducibility
 
-## Testing
+The project is designed to be highly reproducible. Dependencies are managed as follows:
 
-The test suite can be run inside the container to verify its functionality against the controlled environment. This requires overriding the container's default entrypoint to run the test runner instead of the main script. Run this command from your host machine's terminal.
-
-```bash
-docker run --rm --entrypoint python katago-extractor -m unittest test_extract_katago_features.py
-```
+-   **Python Packages**: All Python dependencies (e.g., `torch`, `numpy`) are pinned to specific versions in `requirements.txt`.
+-   **KataGo and sgfmill**: The exact versions of the KataGo and `sgfmill` source code are pinned using `git submodules`, which lock them to a specific commit hash.
+-   **Test Model**: The small KataGo model used for testing is downloaded automatically from a static URL by the test suite, ensuring a consistent testing environment.
