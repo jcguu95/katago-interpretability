@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.4 - 2026-02-08
+
+- **fix**: Fixed a `FileNotFoundError` in the feature extractor test suite by correcting the hardcoded script path in `test_extract_katago_features.py`.
+
 ## 0.9.3 - 2026-02-08
 
 - **fix**: Corrected test execution path in `feature_extraction/Makefile`. The tests are now run from the project root to ensure they can find the downloaded model file, resolving a `FileNotFoundError`.

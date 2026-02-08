@@ -8,7 +8,7 @@ import shutil
 import requests
 
 class TestFeatureExtractorCLI(unittest.TestCase):
-    SCRIPT_PATH = 'extract_katago_features.py'
+    SCRIPT_PATH = 'feature_extraction/extract_katago_features.py'
     # Use a tiny 2-block model for testing to speed things up.
     # This is an official model from the KataGo training repository (media.katagotraining.org),
     # but its small size makes it ideal for fast, automated tests. The previous URL became
