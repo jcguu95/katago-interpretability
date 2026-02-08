@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.0 - 2026-02-08
+
+- **refactor**: Reorganized the project to separate feature extraction from the SAE pipeline.
+  - Moved `extract_katago_features.py` and its test into a new `feature_extraction/` directory.
+  - Created a separate `feature_extraction/Makefile` for managing the standalone extractor component.
+- **chore**: Overhauled the root `Makefile` for clarity.
+  - Renamed `test-all` to `test-pipeline-full` to better describe the end-to-end SAE pipeline test.
+  - Added `test-extractor` and `test-extractor-full` to delegate testing to the new `feature_extraction/` component.
+- **docs**: Updated `README.md` to reflect the new project structure and testing commands.
+
 ## 0.8.4 - 2026-02-08
 
 - **chore**: Added a `make test-all` command to run a full clean test of all project functionality, including the data pipeline, visualization, and original test suite.

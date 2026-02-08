@@ -16,12 +16,14 @@ all: help
 # Help target to display available commands.
 help:
 	@echo "Available commands:"
-	@echo "  make install    - Set up the virtual environment and install dependencies if needed."
-	@echo "  make reinstall  - Force reinstallation of dependencies."
-	@echo "  make test       - Run the test suite."
-	@echo "  make test-full  - Run a clean test, removing venv and models first."
-	@echo "  make test-all   - Run a full clean test of all functionality."
-	@echo "  make clean      - Remove virtual environment and other generated files."
+	@echo "  make install             - Set up the virtual environment and install dependencies if needed."
+	@echo "  make reinstall           - Force reinstallation of dependencies."
+	@echo "  make clean               - Remove virtual environment and other generated files."
+	@echo ""
+	@echo "Testing commands:"
+	@echo "  make test-extractor      - Run the standalone feature extractor test suite."
+	@echo "  make test-extractor-full - Run a clean test of the extractor, including model download."
+	@echo "  make test-pipeline-full  - Run a full clean test of the end-to-end SAE training pipeline."
 	@echo ""
 	@echo "Data Pipeline commands:"
 	@echo "  make data-pipeline       - Run the full SGF generation and feature extraction pipeline."
@@ -54,20 +56,17 @@ reinstall:
 	@rm -f $(INSTALL_STAMP)
 	@$(MAKE) install
 
-# Target to run tests. Assumes model is already downloaded.
-test: install
-	@echo "Running tests..."
-	@PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
+# Target to run feature extractor tests. Assumes model is already downloaded.
+test-extractor: install
+	@$(MAKE) -C feature_extraction test
 
-# Target for a full, clean test run that downloads the model.
-test-full: clean install
-	@echo "Running full tests (including model download)..."
-	@rm -f $(MODEL_ZIP)
-	@ALLOW_MODEL_DOWNLOAD=1 PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) -m unittest test_extract_katago_features.py
+# Target for a full, clean test run of the feature extractor that downloads the model.
+test-extractor-full: clean install
+	@$(MAKE) -C feature_extraction test-full
 
 # Target for a full test of everything, including the data pipeline.
-.PHONY: test-all
-test-all: clean install data-pipeline visualize-sae test
+.PHONY: test-pipeline-full
+test-pipeline-full: clean install data-pipeline visualize-sae test-extractor
 	@echo "--- All tests and pipeline steps completed successfully ---"
 
 
@@ -113,7 +112,7 @@ $(MODEL_CKPT):
 
 $(ACTIVATIONS_FILE): $(SGF_DIR) $(MODEL_CKPT)
 	@echo "--- Collecting activations ---"
-	@PYTHONPATH=$(shell pwd)/katago/python $(VENV_PYTHON) collect_activations.py --sgf-dir $(SGF_DIR) --model-path $(MODEL_CKPT) --output-file $(ACTIVATIONS_FILE)
+	@PYTHONPATH=$(shell pwd):$(shell pwd)/katago/python $(VENV_PYTHON) collect_activations.py --sgf-dir $(SGF_DIR) --model-path $(MODEL_CKPT) --output-file $(ACTIVATIONS_FILE)
 
 # Target to run the SAE training script.
 train-sae: $(SAE_MODEL_FILE)
@@ -145,9 +144,9 @@ visualize-sae: $(SAE_MODEL_FILE)
 clean:
 	@echo "Cleaning up..."
 	rm -rf $(VENV_DIR)
-	rm -f test.sgf test2.sgf
 	rm -rf $(patsubst %.zip,%,$(MODEL_ZIP))
 	rm -rf $(SGF_DIR) $(ACTIVATIONS_DIR)
+	@if [ -d "feature_extraction" ]; then $(MAKE) -C feature_extraction clean; fi
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	@echo "Cleaning submodules..."
 	@git submodule foreach --recursive git clean -fdx

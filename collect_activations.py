@@ -9,7 +9,7 @@ import numpy as np
 from sgfmill import sgf
 from katago.game.board import Board
 from katago.game.gamestate import GameState
-from extract_katago_features import KataGoFeatureExtractor
+from feature_extraction.extract_katago_features import KataGoFeatureExtractor
 
 
 def get_git_commit_hash(path='.'):

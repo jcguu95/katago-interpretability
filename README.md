@@ -4,19 +4,15 @@
 
 This repository provides tools to work with the internal representations of the KataGo Go engine. The primary functionality is to extract feature tensors (activations) from a trained KataGo model for given board states.
 
-### Project Goal: Training a Sparse Autoencoder (SAE)
+### Project Structure
 
-The main goal of this project is to use these extracted features to train a Sparse Autoencoder (SAE). An SAE can learn a compressed, interpretable representation of KataGo's internal "thinking". By analyzing the features the SAE learns, we hope to gain insight into the concepts KataGo uses to evaluate board positions, making its decision-making process more transparent.
-
-The project is structured in two main phases:
-1.  **Data Collection**: Use the provided scripts to extract a large dataset of `trunkfinal` activations from many SGF game files.
-2.  **SAE Training**: Use the collected dataset to train an SAE model.
-
-This two-phase approach allows the computationally-intensive data collection to be done once, and then SAE training can be iterated upon quickly on a more powerful machine.
+The project is organized into two main components:
+- **`feature_extraction/`**: A self-contained module for extracting feature tensors from KataGo. It has its own tests and can be used independently of the SAE pipeline.
+- **SAE Training Pipeline (root)**: A set of scripts and a `Makefile` for generating data, collecting activations, and training a Sparse Autoencoder.
 
 ## Quick Start
 
-This project uses a `Makefile` to automate setup and testing. For details on the commands being run, you can inspect the `Makefile`.
+This project uses `Makefile`s to automate setup and testing.
 
 1.  **Clone the Repository**:
     ```bash
@@ -30,14 +26,14 @@ This project uses a `Makefile` to automate setup and testing. For details on the
     make install
     ```
 
-3.  **Run Tests**:
-    - **Full Test (run this first)**: `make test-full`. This cleans the environment, installs dependencies, downloads the test model, and runs all tests.
+3.  **Run Tests**: There are two sets of tests:
+    - **Feature Extractor Tests**: To test only the standalone feature extraction component. The `-full` version cleans everything and downloads the model.
       ```bash
-      make test-full
+      make test-extractor-full
       ```
-    - **Quick Test**: `make test`. This runs the tests without re-downloading the model, assuming dependencies are already installed. It's much faster for repeated testing.
+    - **Full Pipeline Test**: To run a clean, end-to-end test of the entire SAE training pipeline.
       ```bash
-      make test
+      make test-pipeline-full
       ```
 
 ## Data Pipeline for SAE Training
@@ -91,7 +87,7 @@ If you need to extract features for specific SGF files manually, you can run the
     # (Place your SGF files in 'my_sgfs')
 
     # Example: Extract features from two different SGF files
-    python extract_katago_features.py \
+    python feature_extraction/extract_katago_features.py \
       --sgf-node my_sgfs/test.sgf "" \
       --sgf-node my_sgfs/test2.sgf "0,0,1"
     ```
@@ -135,7 +131,7 @@ For a reproducible development environment, you can use a Docker container. This
     ```
     *Note: Replace `"YOUR_API_KEY"` with your actual API key. You can exit the `aider` session with `/exit` to get a regular shell prompt inside the container.*
 
-2.  **Run tests inside the container**: Once you have a shell inside the container, you can run the full test suite:
+2.  **Run tests inside the container**: Once you have a shell inside the container, you can run the full pipeline test:
     ```bash
-    make test-full
+    make test-pipeline-full
     ```
