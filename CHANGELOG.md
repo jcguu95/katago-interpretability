@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2 - 2026-02-08
+
+- **fix**: Corrected a recurring `SyntaxError` in the `Makefile`'s model extraction command by simplifying the Python one-liner and removing a redundant conditional.
+
 ## 0.9.1 - 2026-02-08
 
 - **fix**: Resolved a `SyntaxError` in the `Makefile`'s model extraction command. The Python one-liner was using a `with` statement, which is not valid in that context. It has been replaced with an equivalent `open`/`close` sequence.
