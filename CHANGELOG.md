@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.2 - 2026-02-08
+
+- **fix**: Fixed a crash in `visualize_sae.py` where the script incorrectly inferred the model's input feature size, causing a dimension mismatch error when loading activations.
+
 ## 0.8.1 - 2026-02-08
 
 - **fix**: Resolved linting errors by removing unused imports from several scripts and adding a missing `sys` import in `visualize_sae.py`.

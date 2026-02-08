@@ -41,7 +41,7 @@ def main():
     # --- Load SAE Model ---
     # Infer dictionary size from the model file's state dict
     state_dict = torch.load(args.sae_model_file, map_location=device)
-    input_features_from_model = state_dict['decoder.weight'].shape[1]
+    input_features_from_model = state_dict['encoder.weight'].shape[1]
     dict_features = state_dict['encoder.weight'].shape[0]
     
     if input_features_from_model != input_features:
