@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 - 2026-02-08
+
+- **feat**: Began pivot towards training a Sparse Autoencoder (SAE) on KataGo's internal features. This is the first step in a larger effort to build interpretability tools for the model.
+- **chore**: Made the core feature extraction script (`extract_katago_features.py`) and its test (`test_extract_katago_features.py`) read-only to ensure stability during the addition of new functionality.
+
 ## 0.3.0 - 2026-02-08
 
 - **refactor**: Replaced the Docker-based setup with a more secure and lightweight `venv` and `git submodule` approach.
