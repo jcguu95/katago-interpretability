@@ -2,7 +2,7 @@
 FROM python:3.10-slim
 
 # Set environment variables
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 ENV KATAGO_MODELS_DIR=/models
 
 # Install git, which is required to check out the submodules
@@ -23,10 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application's code
 COPY . .
 
-# Initialize git submodules for KataGo and sgfmill
-# We need to configure git to allow submodule init from a detached HEAD in CI/Docker environments
-RUN git config --global --add safe.directory /app
-RUN git submodule update --init --recursive
+# Clone the git submodules for KataGo and sgfmill directly
+RUN git clone https://github.com/lightvector/KataGo.git katago
+RUN git clone https://github.com/mattheww/sgfmill.git sgfmill
 
 # The C++ KataGo engine is not needed for this feature extraction script.
 # We return to the app root, which is the default workdir.
