@@ -113,7 +113,7 @@ class KataGoFeatureExtractor:
             print(f"Model not found locally. Downloading from {model_path}...")
 
             # Add User-Agent header to avoid 403 Forbidden error
-            headers = {'User-Agent': 'Mozilla/5.0'}
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
             req = urllib.request.Request(model_path, headers=headers)
             with urllib.request.urlopen(req) as response, open(local_path, 'wb') as out_file:
                 out_file.write(response.read())

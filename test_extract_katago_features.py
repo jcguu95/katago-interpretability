@@ -37,7 +37,8 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         cls.model_ckpt_path = os.path.join(model_dir_name, "model.ckpt")
 
         if not os.path.exists(cls.model_ckpt_path):
-            headers = {'User-Agent': 'Mozilla/5.0'}
+            # Use a more modern-looking User-Agent to avoid 403 Forbidden errors.
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
             req = urllib.request.Request(cls.TEST_MODEL_URL, headers=headers)
             with urllib.request.urlopen(req) as response, open(cls.model_zip_path, 'wb') as out_file:
                 out_file.write(response.read())
