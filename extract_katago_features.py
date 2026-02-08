@@ -65,7 +65,7 @@ def get_state_from_sgf(sgf_file, variation_path_str):
 
         player = Board.BLACK if color == 'B' else Board.WHITE
         if point is None:  # Pass
-            state.play_pass(player)
+            state.play(player, Board.PASS_LOC)
         else:
             row, col = point
             state.play(player, state.board.loc(col, row))
