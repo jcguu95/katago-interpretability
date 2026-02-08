@@ -13,8 +13,8 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     # This is an official model from the KataGo training repository (media.katagotraining.org),
     # but its small size makes it ideal for fast, automated tests. The previous URL became
     # inaccessible, so this has been updated to a different small model (6-block).
-    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12404017920-d5711392113.zip"
-    TEST_MODEL_OUTPUT_SHAPE = "(512, 19, 19)"
+    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/misc/kata1-b6c96-s175439552-d46399393-checkpoint.zip"
+    TEST_MODEL_OUTPUT_SHAPE = "(96, 19, 19)"
     model_zip_path = None
     model_dir_path = None
     model_file_path = None
@@ -66,13 +66,13 @@ class TestFeatureExtractorCLI(unittest.TestCase):
             model_file_zip_path = None
             # Find the full path to model file within the zip archive
             for name in zip_ref.namelist():
-                if name.endswith(('.ckpt', '.bin.gz', '.txt.gz')):
+                if name.endswith('.ckpt'):
                     model_file_zip_path = name
                     break
 
             if not model_file_zip_path:
                 contents = "\n".join(zip_ref.namelist())
-                raise RuntimeError(f"Could not find model file (.ckpt, .bin.gz, or .txt.gz) in the zip: {cls.model_zip_path}\nContents:\n{contents}")
+                raise RuntimeError(f"Could not find model file (.ckpt) in the zip: {cls.model_zip_path}\nContents:\n{contents}")
             
             # The directory path is the parent of model file
             model_dir_name = os.path.dirname(model_file_zip_path)

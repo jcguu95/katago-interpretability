@@ -77,7 +77,7 @@ The project is designed to be highly reproducible. Dependencies are managed as f
 
 ### Model Compatibility
 
-**Warning**: This script is designed to work with modern KataGo models (e.g., `.bin.gz` or `.ckpt` format). The default model and the test model are known to be compatible. Using older, legacy model formats (such as `.txt.gz`) is **not supported** and will likely result in errors.
+**Warning**: This script is designed to work with PyTorch-native KataGo models (`.ckpt` format). The default model and the test model are known to be compatible. Using KataGo's native C++ engine format (e.g., `.bin.gz`) or older legacy formats (such as `.txt.gz`) is **not supported** and will result in errors.
 
 ### Development Environment
 

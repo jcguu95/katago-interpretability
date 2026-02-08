@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 - 2026-02-08
+
+- **fix**: Updated the test suite and data pipeline to use a smaller, compatible KataGo test model in the correct `.ckpt` format. The previous model was in an unsupported `.bin.gz` format that would cause tests to fail.
+- **docs**: Clarified in `README.md` that the feature extractor only supports `.ckpt` model files, not `.bin.gz` files.
+
 ## 0.5.0 - 2026-02-08
 
 - **feat**: Added a reproducible data generation and feature extraction pipeline for SAE training.

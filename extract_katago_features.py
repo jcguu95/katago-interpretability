@@ -154,7 +154,7 @@ class KataGoFeatureExtractor:
         if not os.path.exists(model_filename):
             raise FileNotFoundError(
                 f"Model file not found at {model_filename}. "
-                "This script requires a KataGo model file (.ckpt, .bin.gz, or .txt.gz)."
+                "This script requires a KataGo model file (.ckpt)."
             )
 
         print(f"Loading PyTorch model from '{model_filename}'")
@@ -273,8 +273,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model-path",
-        default="https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12404017920-d5711392113.zip",
-        help="Path or URL to a KataGo model file (.ckpt, .bin.gz, .txt.gz) or a .zip archive containing one.",
+        default="https://media.katagotraining.org/uploaded/networks/zips/misc/kata1-b6c96-s175439552-d46399393-checkpoint.zip",
+        help="Path or URL to a KataGo model file (.ckpt) or a .zip archive containing one.",
     )
     parser.add_argument(
         '--sgf-node',
