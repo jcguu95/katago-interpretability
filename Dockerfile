@@ -5,13 +5,9 @@ FROM python:3.10-slim
 ENV PYTHONUNBUFFERED 1
 ENV KATAGO_MODELS_DIR=/models
 
-# Install system dependencies required for building KataGo
+# Install git, which is required to check out the submodules
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    cmake \
     git \
-    zlib1g-dev \
-    libzip-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container
@@ -32,11 +28,8 @@ COPY . .
 RUN git config --global --add safe.directory /app
 RUN git submodule update --init --recursive
 
-# Build the KataGo engine
-WORKDIR /app/katago/cpp
-RUN cmake . -DUSE_BACKEND=OPENCL && make
-
-# Go back to the app root and set it as the default workdir
+# The C++ KataGo engine is not needed for this feature extraction script.
+# We return to the app root, which is the default workdir.
 WORKDIR /app
 
 # Set the entrypoint to run the feature extraction script
