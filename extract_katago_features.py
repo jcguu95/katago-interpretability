@@ -202,14 +202,19 @@ def _load_model_from_text_file(model_filename, pos_len):
                 raise NotImplementedError(f"Block type {block_type} not supported for text model parsing")
 
         # Skip header metadata
-        for _ in range(8): read_line()
+        # The number of header lines depends on the model version.
+        for _ in range(4): read_line() # Common header
+        if config["version"] > 12:
+            for _ in range(7): read_line() # Multipliers
         if config["version"] >= 15:
-            for _ in range(8): read_line()
+            for _ in range(8): read_line() # Metadata and placeholders
 
         # Parse Trunk
         assert read_line() == "trunk"
         num_blocks = int(read_line())
-        for _ in range(6): read_line()
+        for _ in range(5): read_line() # c_trunk, c_mid, etc.
+        if config["version"] >= 15:
+            for _ in range(6): read_line() # placeholders
 
         parse_conv_weights("model.conv_spatial")
         parse_matmul("model.linear_global")
