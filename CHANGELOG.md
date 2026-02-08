@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.3 - 2026-02-08
+
+- **docs**: Added a new document, `docs/katago_model_architecture.md`, explaining the architecture of KataGo's neural network and confirming that `trunkfinal` is the correct layer for feature extraction.
+
 ## 0.10.2 - 2026-02-08
 
 - **note**: The main goal of the v0.10.x series is to gain a precise understanding of the feature extractor. Upcoming changes will be suggested by the user as this understanding develops.
