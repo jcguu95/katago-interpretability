@@ -1,6 +1,19 @@
 import argparse
 import torch
+import torch.nn as nn
 import json
+
+
+class SparseAutoencoder(nn.Module):
+    def __init__(self, input_features, dict_features):
+        super(SparseAutoencoder, self).__init__()
+        self.encoder = nn.Linear(input_features, dict_features)
+        self.decoder = nn.Linear(dict_features, input_features)
+
+    def forward(self, x):
+        encoded = torch.relu(self.encoder(x))
+        decoded = self.decoder(encoded)
+        return decoded, encoded
 
 
 def main():
@@ -21,9 +34,24 @@ def main():
     print("\nActivations Tensor Info:")
     print(f"  - Shape: {activations.shape}")
     print(f"  - DType: {activations.dtype}")
-    
-    print("\nThis is a placeholder for the SAE training script.")
-    print("The next step would be to define an SAE model and train it on these activations.")
+
+    # Flatten the activations
+    num_samples, C, H, W = activations.shape
+    input_features = C * H * W
+    activations = activations.view(num_samples, -1)
+    print(f"  - Flattened shape: {activations.shape}")
+
+    # TODO: Make this configurable
+    # For an SAE, the dictionary size is typically much larger than the input size.
+    dict_features = input_features * 4
+
+    print(f"\nInitializing SAE model...")
+    print(f"  - Input features: {input_features}")
+    print(f"  - Dictionary features: {dict_features}")
+    model = SparseAutoencoder(input_features, dict_features)
+    print(model)
+
+    print("\nModel initialized. Next steps are to implement the training loop.")
     
 
 if __name__ == "__main__":
