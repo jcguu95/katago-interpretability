@@ -167,7 +167,7 @@ class KataGoFeatureExtractor:
             return np.array([])
 
         batch_size = len(states)
-        board_size = self.features_obj.board_size
+        board_size = self.features_obj.pos_len
         
         # 1. Create empty numpy arrays to hold the binary and global features for the batch.
         # These will be filled with data from each game state.
