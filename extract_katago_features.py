@@ -273,7 +273,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--model-path",
-        default="https://media.katagotraining.org/uploaded/networks/zips/misc/kata1-b6c96-s175439552-d46399393-checkpoint.zip",
+        default="https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b10c128-s4924153856-d1229331901.zip",
         help="Path or URL to a KataGo model file (.ckpt) or a .zip archive containing one.",
     )
     parser.add_argument(

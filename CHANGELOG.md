@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2 - 2026-02-08
+
+- **fix**: Updated test model URL to resolve a 403 Forbidden error during download. The project now uses a `b10c128` model for tests and as the default.
+- **docs**: Added instructions for using a Docker-based development environment to `README.md`.
+
 ## 0.5.1 - 2026-02-08
 
 - **fix**: Updated the test suite and data pipeline to use a smaller, compatible KataGo test model in the correct `.ckpt` format. The previous model was in an unsupported `.bin.gz` format that would cause tests to fail.

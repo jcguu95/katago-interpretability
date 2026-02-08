@@ -69,7 +69,7 @@ test-full: clean install
 SGF_DIR := generated_sgfs
 ACTIVATIONS_DIR := activations
 # This is the default model downloaded by the scripts if not present.
-MODEL_ZIP := kata1-b6c96-s175439552-d46399393-checkpoint.zip
+MODEL_ZIP := kata1-b10c128-s4924153856-d1229331901.zip
 ACTIVATIONS_FILE := $(ACTIVATIONS_DIR)/activations.pt
 
 # Target to run the full data generation and processing pipeline.

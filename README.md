@@ -87,3 +87,25 @@ This project is developed and tested on a Linux environment. The Python package 
 -   **Python Version**: 3.10 (as defined by the virtual environment setup)
 
 There are no external system dependencies required to run this project on the tested Linux platform, as it only uses the Python components of its submodules. If you are attempting to run on an unsupported platform (such as macOS) and `pip` needs to build packages like `numpy` or `torch` from source, you may need to install additional build tools (e.g., `ninja`).
+
+#### Development with Docker and Aider
+
+For a reproducible development environment, you can use a Docker container. This is the environment used for recent development on this project.
+
+1.  **Start the container**: The following command starts an `aider` session within a container, mounting the current directory.
+    ```bash
+    docker run -it --rm \
+        --user $(id -u):$(id -g) \
+        --volume $(pwd):/app \
+        --env GEMINI_API_KEY="YOUR_API_KEY" \
+        paulgauthier/aider-full \
+        --model gemini \
+        --no-stream \
+        --weak-model gemini/gemini-2.0-flash-lite
+    ```
+    *Note: Replace `"YOUR_API_KEY"` with your actual API key. You can exit the `aider` session with `/exit` to get a regular shell prompt inside the container.*
+
+2.  **Run tests inside the container**: Once you have a shell inside the container, you can run the full test suite:
+    ```bash
+    make test-full
+    ```

@@ -12,9 +12,9 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     # Use a tiny 2-block model for testing to speed things up.
     # This is an official model from the KataGo training repository (media.katagotraining.org),
     # but its small size makes it ideal for fast, automated tests. The previous URL became
-    # inaccessible, so this has been updated to a different small model (6-block).
-    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/misc/kata1-b6c96-s175439552-d46399393-checkpoint.zip"
-    TEST_MODEL_OUTPUT_SHAPE = "(96, 19, 19)"
+    # inaccessible, so this has been updated to a different small model (10-block).
+    TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b10c128-s4924153856-d1229331901.zip"
+    TEST_MODEL_OUTPUT_SHAPE = "(128, 19, 19)"
     model_zip_path = None
     model_dir_path = None
     model_file_path = None
