@@ -1,9 +1,8 @@
 import argparse
 import torch
 import torch.nn as nn
-import json
 import random
-import os
+import sys
 
 # The SAE model architecture must match the one used for training.
 class SparseAutoencoder(nn.Module):

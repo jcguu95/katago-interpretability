@@ -1,7 +1,6 @@
 import sys
 import argparse
 import os
-import urllib.request
 import zipfile
 import requests
 

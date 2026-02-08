@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1 - 2026-02-08
+
+- **fix**: Resolved linting errors by removing unused imports from several scripts and adding a missing `sys` import in `visualize_sae.py`.
+
 ## 0.8.0 - 2026-02-08
 
 - **feat**: Added `visualize_sae.py`, a new script to analyze a trained SAE model. It loads the model and activations, and reports reconstruction error and feature sparsity for a random sample.
