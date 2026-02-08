@@ -1,5 +1,7 @@
 # KataGo Interpretability
 
+Tools for training and analyzing Sparse Autoencoders (SAE) on the internal activations of the KataGo Go engine.
+
 ## Overview
 
 This repository provides tools to work with the internal representations of the KataGo Go engine. The primary functionality is to extract feature tensors (activations) from a trained KataGo model for given board states.

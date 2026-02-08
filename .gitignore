@@ -22,3 +22,7 @@ katago_models/
 # Generated data for SAE training
 generated_sgfs/
 activations/
+
+# Submodule build artifacts
+sgfmill/build/
+sgfmill/sgfmill.egg-info/
