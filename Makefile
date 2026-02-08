@@ -130,7 +130,7 @@ $(SAE_MODEL_FILE): $(ACTIVATIONS_FILE)
 		--epochs 2 \
 		--batch-size 32 \
 		--lr 1e-4 \
-		--l1-lambda 1e-3
+		--sparsity-coeff 1e-3
 
 # Target to visualize the trained SAE model.
 visualize-sae: $(SAE_MODEL_FILE)
