@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2 - 2026-02-08
+
+- **note**: The main goal of the v0.10.x series is to gain a precise understanding of the feature extractor. Upcoming changes will be suggested by the user as this understanding develops.
+
 ## 0.10.1 - 2026-02-08
 
 - **fix**: Corrected the argument for sparsity coefficient in `Makefile` from `--l1-lambda` to `--sparsity-coeff` to match `train_sae.py`.
