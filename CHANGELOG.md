@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.11.8 - 2026-02-08
+
+- **feat**: Overhauled `visualize_sae.py` to perform a global analysis of feature statistics across the entire dataset, replacing the previous single-vector analysis.
+- **docs**: The visualization script now reports on feature activation frequency, average magnitude, and max magnitude, providing a much richer understanding of the learned dictionary.
+
 ## 0.11.7 - 2026-02-08
 
 - **feat**: Made the SAE's activation function configurable (`relu` or `gelu`) to facilitate experimentation with different non-linearities.

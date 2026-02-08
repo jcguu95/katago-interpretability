@@ -4,6 +4,8 @@ import torch.nn as nn
 import random
 import sys
 import json
+from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 
 from sae_model import SparseAutoencoder
 
@@ -11,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description="Visualize a trained Sparse Autoencoder.")
     parser.add_argument("--sae-model-file", required=True, help="Path to the trained SAE model (.pt).")
     parser.add_argument("--activations-file", required=True, help="Path to the .pt file with activations.")
+    parser.add_argument("--batch-size", type=int, default=256, help="Batch size for analysis.")
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -54,43 +57,67 @@ def main():
     print(json.dumps(hyperparameters, indent=2))
     print(model)
 
-    # --- Analysis ---
-    print("\n--- Running analysis on a random activation vector ---")
+    # --- Global Feature Analysis ---
+    print("\n--- Running global analysis on all activation vectors ---")
 
-    # Select a random activation vector
-    random_idx = random.randint(0, activations.shape[0] - 1)
-    random_activation = activations[random_idx].unsqueeze(0) # Add batch dimension
-    print(f"Selected random activation vector at index {random_idx}")
+    dataset = TensorDataset(activations)
+    dataloader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False)
 
-    # Run through the model
+    num_total_samples = len(dataset)
+    
+    freq_counts = torch.zeros(dict_features, device=device)
+    summed_magnitudes = torch.zeros(dict_features, device=device)
+    max_magnitudes = torch.zeros(dict_features, device=device)
+
+    print("Processing activations to calculate feature statistics...")
     with torch.no_grad():
-        reconstructed_activation, encoded_features = model(random_activation)
+        for batch in tqdm(dataloader, unit="batch"):
+            inputs = batch[0].to(device)
+            _, encoded_features = model(inputs)
 
-    # Calculate reconstruction error (MSE)
-    mse = nn.MSELoss()(random_activation, reconstructed_activation).item()
-    print(f"\nReconstruction Mean Squared Error (MSE): {mse:.6f}")
+            active_mask = encoded_features > 0
+            freq_counts += active_mask.sum(dim=0)
+            
+            # To get avg magnitude *when active*, we sum up all magnitudes and divide by frequency.
+            summed_magnitudes += encoded_features.sum(dim=0)
 
-    # Analyze the sparse encoded features
-    encoded_features = encoded_features.squeeze(0) # Remove batch dim
-    num_active_features = (encoded_features > 0).sum().item()
-    total_features = encoded_features.shape[0]
-    sparsity = (num_active_features / total_features) * 100
-    
-    print(f"\nEncoded features analysis:")
-    print(f"  - Sparsity: {num_active_features} / {total_features} features are active ({sparsity:.2f}%)")
+            # Find max magnitude for each feature in the batch and update global max
+            if encoded_features.shape[0] > 0:
+                batch_max_magnitudes, _ = torch.max(encoded_features, dim=0)
+                max_magnitudes = torch.max(max_magnitudes, batch_max_magnitudes)
 
-    if num_active_features > 0:
-        # Find the most active feature
-        max_val, max_idx = torch.max(encoded_features, 0)
-        print(f"  - Most active feature index: {max_idx.item()} (value: {max_val.item():.4f})")
-    
-        # Print top 5 active features
-        print("  - Top 5 active features (index: value):")
-        top_k_vals, top_k_indices = torch.topk(encoded_features, k=min(5, num_active_features))
-        for i in range(len(top_k_vals)):
-            print(f"    - {top_k_indices[i].item()}: {top_k_vals[i].item():.4f}")
-    else:
-        print("  - No features were active for this input.")
+    activation_frequency = freq_counts / num_total_samples
+    # Clamp to avoid division by zero for features that never activate.
+    avg_magnitude_when_active = summed_magnitudes / freq_counts.clamp(min=1)
+
+    print("\n--- Global Feature Statistics ---")
+
+    # --- Top 5 Features by Activation Frequency ---
+    print("\nTop 5 Features by Activation Frequency:")
+    top_freq_vals, top_freq_indices = torch.topk(activation_frequency, 5)
+    for i in range(len(top_freq_vals)):
+        idx = top_freq_indices[i].item()
+        freq = top_freq_vals[i].item() * 100
+        avg_mag = avg_magnitude_when_active[idx].item()
+        max_mag = max_magnitudes[idx].item()
+        print(f"  - Feature {idx}: Activated in {freq:.2f}% of samples. Avg Mag: {avg_mag:.4f}, Max Mag: {max_mag:.4f}")
+
+    # --- Top 5 Features by Average Magnitude ---
+    print("\nTop 5 Features by Average Magnitude (when active):")
+    top_mag_vals, top_mag_indices = torch.topk(avg_magnitude_when_active, 5)
+    for i in range(len(top_mag_vals)):
+        idx = top_mag_indices[i].item()
+        freq = activation_frequency[idx].item() * 100
+        avg_mag = top_mag_vals[i].item()
+        max_mag = max_magnitudes[idx].item()
+        print(f"  - Feature {idx}: Avg Mag: {avg_mag:.4f}. Activated in {freq:.2f}% of samples, Max Mag: {max_mag:.4f}")
+
+    # --- Overall Sparsity ---
+    avg_active_features = freq_counts.sum() / num_total_samples
+    total_features = dict_features
+    sparsity = (avg_active_features / total_features) * 100
+    print(f"\nOverall Average Sparsity:")
+    print(f"  - On average, {avg_active_features:.2f} / {total_features} features are active per sample ({sparsity:.2f}%)")
 
 
 if __name__ == "__main__":
