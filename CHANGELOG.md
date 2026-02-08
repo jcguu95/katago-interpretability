@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.8 - 2026-02-08
+
+- **docs**: Added a detailed section to `README.md` explaining the SAE architecture, alternative training approaches, and methods for evaluation and feature interpretation.
+
 ## 0.9.7 - 2026-02-08
 
 - **refactor**: The `SparseAutoencoder` class has been moved into its own file (`sae_model.py`) to eliminate code duplication between the training and visualization scripts.

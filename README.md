@@ -66,6 +66,43 @@ This will print:
 
 This serves as a starting point for deeper analysis of what the SAE has learned.
 
+## SAE Architecture and Evaluation
+
+This section details the current implementation of the Sparse Autoencoder (SAE) and provides guidance on its evaluation.
+
+### Current Architecture
+
+The current SAE is a simple, single-hidden-layer neural network with the following components:
+
+-   **Input**: The network takes feature vectors from KataGo's `trunkfinal` layer. The activations tensor, with an original shape of `(N, C, H, W)`, is reshaped so that each spatial location `(H, W)` for each sample `N` is treated as an independent data point. This results in an input shape of `(N*H*W, C)`, where `C` is the number of input features.
+-   **Encoder**: A single linear layer that maps the `C` input features to a larger number of "dictionary" features, `D`. The size of `D` is controlled by the `--dict-size-factor` (default is `4 * C`). This is followed by a Rectified Linear Unit (ReLU) activation function, which introduces non-linearity and ensures the learned features are non-negative.
+-   **Decoder**: A single linear layer that maps the `D` dictionary features back to the original `C`-dimensional space, attempting to reconstruct the original input vector.
+-   **Loss Function**: The model is trained to minimize a composite loss function:
+    `Loss = Reconstruction_Loss + λ * Sparsity_Loss`
+    -   **Reconstruction Loss**: This is the Mean Squared Error (MSE) between the decoder's output and the original input vector. It pushes the model to learn a faithful representation of the data.
+    -   **Sparsity Loss**: This is an L1 penalty (`torch.norm(..., 1)`) on the activations of the hidden layer (the encoded features). It encourages the model to represent each input with only a few active features, forcing each feature to be more specialized. The coefficient `λ` (`--l1-lambda`) controls the strength of this sparsity pressure.
+
+### Alternative Training Approaches
+
+While the current setup is a standard starting point, several other techniques could be explored:
+
+-   **Different Sparsity Penalties**: Instead of L1, one could use a KL-divergence penalty to encourage the average activation of each feature over the whole dataset to be close to a small target value.
+-   **More Complex Architectures**: Deeper autoencoders with multiple hidden layers could potentially learn more hierarchical features.
+-   **Activation Preprocessing**: Techniques like whitening (decorrelating the input features and scaling them to have unit variance) can sometimes help training.
+
+### How to Evaluate the SAE
+
+The goal of this SAE is not just to reconstruct its input, but to provide *interpretable* features. The script `visualize_sae.py` provides a basic check of reconstruction error and sparsity on a single input. A more thorough evaluation involves:
+
+1.  **Measuring the Sparsity/Reconstruction Trade-off**: A good SAE should achieve low reconstruction error while maintaining high sparsity (few active features per input). You can evaluate this by training models with different `l1-lambda` values and plotting the resulting MSE vs. the average number of active features (L0 norm).
+
+2.  **Qualitative Feature Interpretation (The "Human-in-the-Loop" part)**: This is the most crucial part of evaluation. To understand what a feature has learned, you can:
+    -   Find the data points (i.e., board states) from your dataset that cause the highest activation for a specific feature in the hidden layer.
+    -   Visualize these board states.
+    -   As a human Go player, look for common patterns. Does the feature activate for "a white group in atari"? Or "a black moyo forming on the right side"? Or "a key cutting point"?
+
+This is where your domain expertise as a Go player is essential. You don't need to "match" the decoded information to human data in a formal, supervised sense. Instead, you use human-understandable concepts from Go to label and understand the learned features. Using SGFs of known situations (joseki, puzzles, pro games) is an excellent way to probe what the features represent.
+
 ## Manual Usage
 
 If you need to extract features for specific SGF files manually, you can run the main extraction script. You must first activate the virtual environment.
