@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1 - 2026-02-08
+
+- **fix**: Corrected the argument for sparsity coefficient in `Makefile` from `--l1-lambda` to `--sparsity-coeff` to match `train_sae.py`.
+
 ## 0.10.0 - 2026-02-08
 
 - **release**: Version 0.10.0 marks a significant milestone. The project now provides a complete, end-to-end toolkit for training Sparse Autoencoders on KataGo's internal activations and includes robust tools for data verification and feature interpretation. The core components are stable and ready for large-scale data collection and analysis.
