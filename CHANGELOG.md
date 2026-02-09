@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.7 - 2026-02-09
+
+- **fix**: Hardened the KataGo model's pooling layers (`KataGPool`, `KataValueHeadGPool`) against division-by-zero errors by clamping the board area divisor. This is a robust fix for the recurring `KeyError` during the full data pipeline test.
+
 ## 0.12.6 - 2026-02-09
 
 - **debug**: Added enhanced error reporting to the feature extractor. If a requested layer is not found, the script now prints a list of all available layers from that forward pass to aid in debugging difficult cases.
