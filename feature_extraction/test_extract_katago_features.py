@@ -16,7 +16,9 @@ class TestFeatureExtractorCLI(unittest.TestCase):
     # but its small size makes it ideal for fast, automated tests. The previous URL became
     # inaccessible, so this has been updated to a different small model (28-block).
     TEST_MODEL_URL = "https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12404017920-d5711392113.zip"
-    TEST_MODEL_OUTPUT_SHAPE = "(512, 19, 19)"
+    # Default layer is 'policy_penultimate'
+    TEST_MODEL_OUTPUT_SHAPE = "(64, 19, 19)"
+    TRUNKFINAL_SHAPE = "(512, 19, 19)"
     model_zip_path = None
     model_dir_path = None
     model_file_path = None
@@ -113,7 +115,19 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn(f"--- Features for {self.TEST_SGF_FILENAME} at path '0,0' ---", result.stdout)
-        self.assertIn(f"Trunkfinal output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
+        self.assertIn(f"policy_penultimate output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
+
+    def test_trunkfinal_extraction(self):
+        """Test extracting features for the 'trunkfinal' layer specifically."""
+        args = [
+            '--sgf-node', self.TEST_SGF_FILENAME, "0,0",
+            '--model-path', self.model_file_path,
+            '--layer-name', 'trunkfinal'
+        ]
+        result = self.run_script(args)
+        self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
+        self.assertIn(f"--- Features for {self.TEST_SGF_FILENAME} at path '0,0' ---", result.stdout)
+        self.assertIn(f"trunkfinal output shape: {self.TRUNKFINAL_SHAPE}", result.stdout)
 
     def test_batch_processing(self):
         """Test batch processing of multiple nodes."""
@@ -126,7 +140,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn(f"--- Features for {self.TEST_SGF_FILENAME} at path 'root' ---", result.stdout)
         self.assertIn(f"--- Features for {self.TEST2_SGF_FILENAME} at path '0,0,0' ---", result.stdout)
-        self.assertEqual(result.stdout.count(f"Trunkfinal output shape:"), 2)
+        self.assertEqual(result.stdout.count(f"policy_penultimate output shape:"), 2)
 
     def test_handicap_stones(self):
         """Test processing an SGF with handicap stones (AB property)."""
@@ -134,7 +148,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn(f"--- Features for {self.TEST_HANDICAP_SGF_FILENAME} at path 'root' ---", result.stdout)
-        self.assertIn(f"Trunkfinal output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
+        self.assertIn(f"policy_penultimate output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
 
     def test_invalid_variation_path(self):
         """Test with an invalid variation path."""
@@ -156,7 +170,7 @@ class TestFeatureExtractorCLI(unittest.TestCase):
         result = self.run_script(args)
         self.assertEqual(result.returncode, 0, f"Script failed with stderr: {result.stderr}")
         self.assertIn("--- Using initial demo game state ---", result.stdout)
-        self.assertIn(f"Trunkfinal output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
+        self.assertIn(f"policy_penultimate output shape: {self.TEST_MODEL_OUTPUT_SHAPE}", result.stdout)
 
 class TestFeatureExtractorConsistency(unittest.TestCase):
     """Tests for the numerical consistency of the feature extractor output."""
@@ -178,9 +192,13 @@ class TestFeatureExtractorConsistency(unittest.TestCase):
         cls.extractor = KataGoFeatureExtractor(TestFeatureExtractorCLI.model_file_path, board_size=19)
 
     def test_demo_state_consistency(self):
-        """Test that the feature output for the standard demo state is consistent."""
+        """
+        Test that the feature output for the 'trunkfinal' layer on the standard
+        demo state is numerically consistent. This ensures that the original
+        functionality is preserved.
+        """
         state = initialize_game_state()
-        trunkfinal_output = self.extractor.extract_trunkfinal_output(state)
+        trunkfinal_output = self.extractor.extract_layer_output(state, "trunkfinal")
 
         # A sha256 hash of the output tensor's raw bytes.
         # This will detect any changes to the numerical output.
