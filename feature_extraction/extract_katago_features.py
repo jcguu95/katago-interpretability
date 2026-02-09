@@ -231,7 +231,13 @@ class KataGoFeatureExtractor:
             )
 
         # 6. Retrieve the captured tensor from the `extra_outputs` object.
-        layer_output_batch = extra_outputs.returned[layer_name].cpu().numpy()
+        try:
+            layer_output_batch = extra_outputs.returned[layer_name].cpu().numpy()
+        except KeyError:
+            print(f"ERROR: Requested layer '{layer_name}' not found in model's extra outputs.", file=sys.stderr)
+            print(f"Available outputs for this batch were: {extra_outputs.available}", file=sys.stderr)
+            print("This can happen if the model has an unusual forward pass for certain board states.", file=sys.stderr)
+            raise
         return layer_output_batch
 
 

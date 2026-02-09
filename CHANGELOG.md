@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.6 - 2026-02-09
+
+- **debug**: Added enhanced error reporting to the feature extractor. If a requested layer is not found, the script now prints a list of all available layers from that forward pass to aid in debugging difficult cases.
+
 ## 0.12.5 - 2026-02-09
 
 - **fix**: Corrected an `AttributeError` in `collect_activations.py` that occurred when traversing SGF nodes. The script now uses a robust `try...except` block to handle the end of a game variation, which is compatible with `sgfmill`'s lazy-loading of SGF trees.
