@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.8 - 2026-02-09
+
+- **fix**: Prevented `make clean` from resetting KataGo submodule modifications. The test pipeline now preserves the necessary source code hacks.
+
 ## 0.12.7 - 2026-02-09
 
 - **fix**: Hardened the KataGo model's pooling layers (`KataGPool`, `KataValueHeadGPool`) against division-by-zero errors by clamping the board area divisor. This is a robust fix for the recurring `KeyError` during the full data pipeline test.
