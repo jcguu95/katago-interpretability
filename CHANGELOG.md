@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.5 - 2026-02-09
+
+- **fix**: Corrected an `AttributeError` in `collect_activations.py` that occurred when traversing SGF nodes. The script now uses a robust `try...except` block to handle the end of a game variation, which is compatible with `sgfmill`'s lazy-loading of SGF trees.
+
 ## 0.12.4 - 2026-02-09
 
 - **fix**: Implemented batch chunking in `collect_activations.py` to work around a `KeyError` that occurred when processing very large batches of game states. This resolves the failure in the full data pipeline test.

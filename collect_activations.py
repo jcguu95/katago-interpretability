@@ -46,8 +46,12 @@ def process_sgf_file(sgf_path):
 
     # Follow the main variation, yielding the state *after* each move.
     # We skip the initial empty board state, which seems to cause issues.
-    while node.children:
-        node = node[0]
+    while True:
+        try:
+            node = node[0]
+        except IndexError:
+            break
+
         if node.has_property('B'):
             color, point = "B", node.get('B')
         elif node.has_property('W'):
@@ -61,7 +65,7 @@ def process_sgf_file(sgf_path):
         else:
             row, col = point
             loc = state.board.loc(col, row)
-        
+
         # Check legality before playing
         if state.board.would_be_legal(player, loc):
             state.play(player, loc)
