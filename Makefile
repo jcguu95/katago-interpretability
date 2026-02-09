@@ -167,5 +167,6 @@ clean:
 	@if [ -d "feature_extraction" ]; then $(MAKE) -C feature_extraction clean; fi
 	find . -type d -name "__pycache__" -exec rm -r {} +
 	@echo "Cleaning submodules..."
-	@git submodule foreach --recursive git clean -fdx
-	@git submodule foreach --recursive git reset --hard
+	@# The following lines are commented out to preserve modifications to the KataGo submodule.
+	@# @git submodule foreach --recursive git clean -fdx
+	@# @git submodule foreach --recursive git reset --hard
