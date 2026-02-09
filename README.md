@@ -135,8 +135,8 @@ This section details the current implementation of the Sparse Autoencoder (SAE) 
 
 The current SAE is a simple, single-hidden-layer neural network with the following components:
 
--   **Input**: The network takes feature vectors from KataGo's `trunkfinal` layer. The activations tensor, with an original shape of `(N, C, H, W)`, is reshaped so that each spatial location `(H, W)` for each sample `N` is treated as an independent data point. This results in an input shape of `(N*H*W, C)`, where `C` is the number of input features.
--   **Encoder**: A single linear layer that maps the `C` input features to a larger number of "dictionary" features, `D`. The size of `D` is controlled by the `--dict-size-factor` (default is `4 * C`). This is followed by a Rectified Linear Unit (ReLU) activation function, which introduces non-linearity and ensures the learned features are non-negative.
+-   **Input**: The network takes feature vectors from the penultimate layer of KataGo's policy head (`policy_penultimate`). The activations tensor, with an original shape of `(N, C, H, W)`, is reshaped so that each spatial location `(H, W)` for each sample `N` is treated as an independent data point. This results in an input shape of `(N*H*W, C)`, where `C` is the number of input features (64 for this layer).
+-   **Encoder**: A single linear layer that maps the `C` input features to a larger number of "dictionary" features, `D`. The size of `D` is controlled by the `--dict-size-factor` (default is `8 * C`). This is followed by a Rectified Linear Unit (ReLU) activation function, which introduces non-linearity and ensures the learned features are non-negative.
 -   **Decoder**: A single linear layer that maps the `D` dictionary features back to the original `C`-dimensional space, attempting to reconstruct the original input vector.
 -   **Loss Function**: The model is trained to minimize a composite loss function:
     `Loss = Reconstruction_Loss + λ * Sparsity_Loss`

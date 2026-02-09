@@ -1,3 +1,18 @@
+"""
+A standalone script for extracting feature tensors from specified layers of a KataGo model.
+
+This script is a general-purpose tool for accessing KataGo's internal representations.
+It is designed to be independent of the larger SAE training pipeline, allowing for
+flexible and targeted feature extraction for analysis or other downstream tasks.
+
+The script supports extracting from multiple layers, including:
+- 'trunkfinal': The 512-channel output of the main residual trunk.
+- 'policy_penultimate': The 64-channel layer just before the final policy output convolution.
+
+While the primary use case in this project is to generate data for SAE training (defaulting
+to 'policy_penultimate'), the script retains the ability to extract from other layers
+like 'trunkfinal' to ensure its utility as a versatile, standalone tool for model inspection.
+"""
 import sys
 import argparse
 import os
@@ -156,19 +171,19 @@ class KataGoFeatureExtractor:
         model.eval()  # Set the model to evaluation mode
         return model, config
 
-    def extract_trunkfinal_output(self, state):
+    def extract_layer_output(self, state, layer_name):
         """
-        Extracts the 'trunkfinal' layer for a single state.
+        Extracts a specific layer's output for a single state.
         
-        This is a convenience wrapper around `extract_trunkfinal_output_batch`. It processes a single
+        This is a convenience wrapper around `extract_layer_output_batch`. It processes a single
         state by wrapping it in a list to create a batch of size 1. True batch processing
         is used when multiple `--sgf-node` arguments are passed to the script.
         """
-        batch_output = self.extract_trunkfinal_output_batch([state])
+        batch_output = self.extract_layer_output_batch([state], layer_name)
         return batch_output[0]
 
-    def extract_trunkfinal_output_batch(self, states):
-        """Extracts 'trunkfinal' layer for a batch of game states."""
+    def extract_layer_output_batch(self, states, layer_name):
+        """Extracts a specific layer's output for a batch of game states."""
         if not states:
             return np.array([])
 
@@ -197,10 +212,10 @@ class KataGoFeatureExtractor:
                 binary_input_data_to_fill, global_input_data, i
             )
 
-        # 3. Set up a hook to capture the 'trunkfinal' layer's output.
+        # 3. Set up a hook to capture the requested layer's output.
         # This doesn't use the `state` directly, but it tells the model what to give us back
         # when we run the forward pass with the state-derived feature tensors.
-        extra_output_names = ["trunkfinal"]
+        extra_output_names = [layer_name]
         extra_outputs = ExtraOutputs(extra_output_names)
 
         # 4. Convert the numpy arrays to PyTorch tensors and move them to the correct device (CPU/GPU).
@@ -216,19 +231,19 @@ class KataGoFeatureExtractor:
             )
 
         # 6. Retrieve the captured tensor from the `extra_outputs` object.
-        trunkfinal_output_batch = extra_outputs.returned["trunkfinal"].cpu().numpy()
-        return trunkfinal_output_batch
+        layer_output_batch = extra_outputs.returned[layer_name].cpu().numpy()
+        return layer_output_batch
 
 
-def print_trunkfinal_output(trunkfinal_output):
-    """Prints the trunkfinal output."""
-    print("Trunkfinal output shape:", trunkfinal_output.shape)
-    print("Trunkfinal output:", trunkfinal_output)
+def print_layer_output(layer_output, layer_name):
+    """Prints the layer output."""
+    print(f"{layer_name} output shape:", layer_output.shape)
+    print(f"{layer_name} output:", layer_output)
 
 
 def extract_features(args):
     """
-    Extracts the 'trunkfinal' layer from KataGo's neural network for a given game state.
+    Extracts a specified layer from KataGo's neural network for given game states.
     """
     if args.sgf_node:
         nodes_to_process = args.sgf_node
@@ -253,12 +268,12 @@ def extract_features(args):
         board_size = states[0].board_size
         extractor = KataGoFeatureExtractor(args.model_path, board_size)
 
-        print(f"--- Extracting features for {len(states)} positions in a single batch ---")
-        trunkfinal_outputs = extractor.extract_trunkfinal_output_batch(states)
+        print(f"--- Extracting '{args.layer_name}' for {len(states)} positions in a single batch ---")
+        layer_outputs = extractor.extract_layer_output_batch(states, args.layer_name)
 
         for i, (sgf_filepath, path) in enumerate(valid_nodes):
             print(f"\n--- Features for {sgf_filepath} at path '{path or 'root'}' ---")
-            print_trunkfinal_output(trunkfinal_outputs[i])
+            print_layer_output(layer_outputs[i], args.layer_name)
 
     else:
         print("--- Using initial demo game state ---")
@@ -266,9 +281,9 @@ def extract_features(args):
         board_size = state.board_size if isinstance(state.board_size, int) else state.board_size[0]
         extractor = KataGoFeatureExtractor(args.model_path, board_size)
 
-        print("\n--- Extracting features for the specified game state ---")
-        trunkfinal_output = extractor.extract_trunkfinal_output(state)
-        print_trunkfinal_output(trunkfinal_output)
+        print(f"\n--- Extracting '{args.layer_name}' for the specified game state ---")
+        layer_output = extractor.extract_layer_output(state, args.layer_name)
+        print_layer_output(layer_output, args.layer_name)
 
 
 if __name__ == "__main__":
@@ -279,6 +294,12 @@ if __name__ == "__main__":
         "--model-path",
         default="https://media.katagotraining.org/uploaded/networks/zips/kata1/kata1-b28c512nbt-s12404017920-d5711392113.zip",
         help="Path or URL to a KataGo model file (.ckpt) or a .zip archive containing one.",
+    )
+    parser.add_argument(
+        "--layer-name",
+        default="policy_penultimate",
+        choices=["trunkfinal", "policy_penultimate"],
+        help="The name of the layer to extract activations from.",
     )
     parser.add_argument(
         '--sgf-node',

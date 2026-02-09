@@ -66,6 +66,12 @@ test-extractor-full: clean install
 	@rm -f $(MODEL_ZIP)
 	@$(MAKE) -C feature_extraction test-full
 
+# Target to run the verification script.
+.PHONY: test-verification-script
+test-verification-script: install
+	@echo "--- Running verification script for 'policy_penultimate' ---"
+	@$(VENV_PYTHON) verify_policy_penultimate.py
+
 # Target for a full test of everything, including the data pipeline.
 .PHONY: test-pipeline-full
 test-pipeline-full: clean install data-pipeline visualize-sae test-extractor

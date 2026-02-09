@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.12.3 - 2026-02-09
+
+- **test**: Updated the feature extractor test suite to handle the new `--layer-name` argument.
+- **test**: Added a specific test to ensure `trunkfinal` extraction still works correctly.
+- **test**: Updated the numerical consistency test to explicitly use `trunkfinal`, preserving the original baseline.
+
+## 0.12.2 - 2026-02-09
+
+- **refactor**: The script `feature_extraction/extract_katago_features.py` can now extract different layers via a `--layer-name` argument, defaulting to `policy_penultimate`.
+- **docs**: Added documentation to the extractor script to clarify its dual-purpose nature.
+- **chore**: Added a `make test-verification-script` command to easily run the `policy_penultimate` verification script.
+- **docs**: Updated `README.md` to reflect the new target layer for SAE training.
+
 ## 0.12.1 - 2026-02-09
 
 - **fix**: Corrected a `TypeError` in `verify_policy_penultimate.py` that occurred because the script did not handle cases where the model's configuration is attached to the model object instead of being returned separately.
