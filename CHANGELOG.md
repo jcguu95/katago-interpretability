@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.0 - 2026-02-08
+
+- **milestone**: The `v0.11.x` series has concluded. We have a solid understanding of the SAE training architecture and its limitations with respect to the `trunkfinal` layer (i.e., its lack of global context).
+- **note**: The main goal of the `v0.12.x` series is to retarget our analysis to a more specialized layer. We will modify the data pipeline to extract activations from the policy head's penultimate layer and train a new SAE on this richer, more move-specific representation.
+- **feat**: Exposed the policy head's penultimate activation layer as `policy_penultimate` for feature extraction.
+
 ## 0.11.10 - 2026-02-08
 
 - **docs**: Documented the significant finding (unpublished observation by Jin-Cheng Guu) that KataGo's raw policy network, without any search, is strong enough to beat high-dan players. This justifies our focus on understanding the network's internal representations directly.
