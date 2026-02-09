@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.12.9 - 2026-02-09
+
+- **fix**: The `make test-pipeline-full` command now passes reliably. This was achieved by preventing the `clean` command from reverting necessary hacks to the KataGo submodule.
+- **docs**: Updated `docs/katago_hack.md` with comprehensive documentation of all modifications made to the KataGo source code.
+
 ## 0.12.8 - 2026-02-09
 
 - **fix**: Prevented `make clean` from resetting KataGo submodule modifications. The test pipeline now preserves the necessary source code hacks.
