@@ -78,6 +78,12 @@ def main():
     parser.add_argument("--model-path", required=True, help="Path to the KataGo model file.")
     parser.add_argument("--output-file", default="activations/activations.pt", help="Path to save the collected activations.")
     parser.add_argument("--limit", type=int, default=None, help="Limit the number of SGF files to process.")
+    parser.add_argument(
+        "--layer-name",
+        default="policy_penultimate",
+        choices=["trunkfinal", "policy_penultimate"],
+        help="The name of the layer to extract activations from.",
+    )
     args = parser.parse_args()
 
     if not os.path.isdir(args.sgf_dir):
@@ -115,7 +121,7 @@ def main():
         })
 
         total_states += len(states_to_process)
-        activations_batch = extractor.extract_trunkfinal_output_batch(states_to_process)
+        activations_batch = extractor.extract_layer_output_batch(states_to_process, args.layer_name)
         all_activations.append(activations_batch)
 
     if not all_activations:
@@ -134,6 +140,7 @@ def main():
         "katago_submodule_hash": get_git_commit_hash(path="katago"),
         "model_path": os.path.abspath(args.model_path),
         "sgf_dir": os.path.abspath(args.sgf_dir),
+        "layer_name": args.layer_name,
         "num_activations": final_tensor_torch.shape[0],
         "activations_shape": list(final_tensor_torch.shape),
         "source_map": source_map,
