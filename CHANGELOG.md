@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.4 - 2026-02-09
+
+- **fix**: Implemented batch chunking in `collect_activations.py` to work around a `KeyError` that occurred when processing very large batches of game states. This resolves the failure in the full data pipeline test.
+
 ## 0.12.3 - 2026-02-09
 
 - **test**: Updated the feature extractor test suite to handle the new `--layer-name` argument.

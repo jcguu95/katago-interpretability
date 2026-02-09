@@ -121,8 +121,15 @@ def main():
         })
 
         total_states += len(states_to_process)
-        activations_batch = extractor.extract_layer_output_batch(states_to_process, args.layer_name)
-        all_activations.append(activations_batch)
+        
+        # Process in smaller chunks to work around a suspected issue with very large batches.
+        chunk_size = 32
+        for i in range(0, len(states_to_process), chunk_size):
+            states_chunk = states_to_process[i:i + chunk_size]
+            if not states_chunk:
+                continue
+            activations_batch = extractor.extract_layer_output_batch(states_chunk, args.layer_name)
+            all_activations.append(activations_batch)
 
     if not all_activations:
         print("No activations were collected. Exiting.", file=sys.stderr)
