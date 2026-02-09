@@ -44,10 +44,9 @@ def process_sgf_file(sgf_path):
             row, col = point
             state.play(Board.WHITE, state.board.loc(col, row))
 
-    yield state
-
-    # Follow the main variation
-    while node:
+    # Follow the main variation, yielding the state *after* each move.
+    # We skip the initial empty board state, which seems to cause issues.
+    while node.children:
         node = node[0]
         if node.has_property('B'):
             color, point = "B", node.get('B')
