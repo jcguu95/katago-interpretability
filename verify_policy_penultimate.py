@@ -53,6 +53,9 @@ def main():
         print(f"An error occurred while loading the model: {e}")
         sys.exit(1)
 
+    # If config is not returned by load_model, try to get it from the model object
+    if config is None and hasattr(model, 'config'):
+        config = model.config
 
     features_obj = features.Features(config, board_size)
     state = initialize_game_state()

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.1 - 2026-02-09
+
+- **fix**: Corrected a `TypeError` in `verify_policy_penultimate.py` that occurred because the script did not handle cases where the model's configuration is attached to the model object instead of being returned separately.
+
 ## 0.12.0 - 2026-02-08
 
 - **milestone**: The `v0.11.x` series has concluded. We have a solid understanding of the SAE training architecture and its limitations with respect to the `trunkfinal` layer (i.e., its lack of global context).
