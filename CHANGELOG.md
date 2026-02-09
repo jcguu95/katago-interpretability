@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.13.0 - 2026-02-09
+
+- **milestone**: The `v0.12.x` series has concluded. We have successfully retargeted the data pipeline to the `policy_penultimate` layer and resolved all associated bugs and pipeline failures.
+- **note**: The main goal of the `v0.13.x` series is to understand completely what the features in the `policy_penultimate` layer represent.
+
 ## 0.12.9 - 2026-02-09
 
 - **fix**: The `make test-pipeline-full` command now passes reliably. This was achieved by preventing the `clean` command from reverting necessary hacks to the KataGo submodule.
